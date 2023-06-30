@@ -1,7 +1,6 @@
-2023-06-23 14:51:24 - main - INFO - Loaded central arrivals data
-2023-06-23 14:51:24 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals
-2023-06-23 14:51:47 - core.tfl - INFO - LOADED TFL API
-2023-06-23 14:51:51 - main - INFO - Loaded root page
-2023-06-23 14:52:05 - main - INFO - Loaded root page
-2023-06-23 14:52:07 - main - INFO - Loaded bakerloo arrivals data
-2023-06-23 14:52:08 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/bakerloo/Arrivals
+2023-06-30 08:27:33 - main - INFO - Loaded root page
+2023-06-30 08:27:33 - main - INFO - Loaded favicon.ico arrivals data
+2023-06-30 08:27:33 - main - INFO - Loaded central arrivals data
+2023-06-30 08:27:34 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals
+2023-06-30 08:29:23 - main - INFO - Loaded central arrivals data
+2023-06-30 08:29:24 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals
