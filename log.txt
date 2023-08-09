@@ -1,6 +1,0 @@
-2023-06-30 08:27:33 - main - INFO - Loaded root page
-2023-06-30 08:27:33 - main - INFO - Loaded favicon.ico arrivals data
-2023-06-30 08:27:33 - main - INFO - Loaded central arrivals data
-2023-06-30 08:27:34 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals
-2023-06-30 08:29:23 - main - INFO - Loaded central arrivals data
-2023-06-30 08:29:24 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals
