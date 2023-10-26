@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 from fastapi import FastAPI
-from core.tfl_line import get_tflline
+from project.core.tfl_line import get_tflline
 
 logs_file = Path(Path().resolve(), "log.txt")
 logs_file.touch(exist_ok=True)

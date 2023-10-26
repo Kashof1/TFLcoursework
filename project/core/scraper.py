@@ -1,7 +1,7 @@
-from core.utils import get_url
 import logging
+
+from core.utils import get_url
 import core.tfl_line as tfl_line
-import time
 from core.databaseutils import DatabaseHandler
 
 log = logging.getLogger(__name__)
