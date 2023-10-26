@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 from fastapi import FastAPI
-from core.tfl import get_tfl
+from core.tfl_line import get_tflline
 
 logs_file = Path(Path().resolve(), "log.txt")
 logs_file.touch(exist_ok=True)
@@ -17,7 +17,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 app = FastAPI()
-tfl_api = get_tfl()
+tfl_api = get_tflline()
 
 @app.get('/')
 async def root():

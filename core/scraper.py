@@ -1,11 +1,11 @@
 from core.utils import get_url
 import logging
-import core.tfl as tfl
+import core.tfl_line as tfl_line
 import time
 from core.databaseutils import DatabaseHandler
 
 log = logging.getLogger(__name__)
-tflinstance = tfl.get_tfl()
+tflinstance = tfl_line.get_tflline()
 
 class Scraper:
     def __init__(self, linename: str, filename: str):

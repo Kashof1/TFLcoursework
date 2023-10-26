@@ -5,7 +5,7 @@ from core.utils import get_url
 
 log = logging.getLogger(__name__)
 
-class get_tfl:
+class get_tflline:
 
     arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
 
