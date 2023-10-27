@@ -19,3 +19,4 @@ savepath = os.path.join(currentpath,'data','stations')
 
 with open (savepath, 'w') as outputfile:
     json.dump (final, outputfile)
+
