@@ -15,7 +15,7 @@ for line in lines:
             final.update({each['commonName'] : each['id']})
 
 currentpath = os.path.dirname(os.path.realpath(__file__))
-savepath = os.path.join(currentpath,'data','stations')
+savepath = os.path.join(currentpath,'data','stations.json')
 
 with open (savepath, 'w') as outputfile:
     json.dump (final, outputfile)
