@@ -1,3 +1,5 @@
+'''This script updates the json file of all of the common station names and their associated naptanIDs'''
+
 import json
 import os
 
