@@ -1,0 +1,23 @@
+2023-10-31 14:31:27 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:32:19 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:32:48 - main - INFO - Loaded root page
+2023-10-31 14:32:48 - main - INFO - Loaded apple-touch-icon-precomposed.png arrivals data
+2023-10-31 14:32:48 - main - INFO - Loaded apple-touch-icon.png arrivals data
+2023-10-31 14:32:48 - main - INFO - Loaded favicon.ico arrivals data
+2023-10-31 14:32:56 - main - INFO - Loaded root page
+2023-10-31 14:32:58 - main - INFO - Loaded central arrivals data
+2023-10-31 14:32:59 - main - INFO - Loaded central arrivals data
+2023-10-31 14:33:11 - main - INFO - Loaded central arrivals page for Hainault+Underground+Station
+2023-10-31 14:34:19 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:34:27 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:34:29 - main - INFO - Loaded central arrivals page for Hainault+Underground+Station
+2023-10-31 14:34:43 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:34:44 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:34:45 - main - INFO - Loaded central arrivals page for Hainault+Underground+Station
+2023-10-31 14:35:24 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:35:28 - main - INFO - Loaded central arrivals page for Hainault Underground Station
+2023-10-31 14:36:43 - core.tfl_station - INFO - LOADED TFL API
+2023-10-31 14:36:46 - main - INFO - Loaded central arrivals page for Hainault Underground Station
+2023-10-31 14:36:46 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals/940GZZLUHLT
+2023-10-31 14:37:05 - main - INFO - Loaded central arrivals page for Hainault Underground Station
+2023-10-31 14:37:05 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals/940GZZLUHLT

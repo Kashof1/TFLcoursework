@@ -1,4 +1,4 @@
-from .core.scraper import Scraper
+from project.core.scraper import Scraper
 import time
 
 jubileescraper = Scraper('jubilee', 'linedatabases/raw/jubileetest.txt')

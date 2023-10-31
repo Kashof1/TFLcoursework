@@ -2,7 +2,8 @@ import logging
 import os
 from pathlib import Path
 from fastapi import FastAPI
-from project.core.tfl_line import get_tflline
+from core.tfl_line import get_tflline
+from core.tfl_station import get_tflstation
 
 logs_file = Path(Path().resolve(), "log.txt")
 logs_file.touch(exist_ok=True)
@@ -17,7 +18,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 app = FastAPI()
-tfl_api = get_tflline()
+tfl_api = get_tflstation()
 
 @app.get('/')
 async def root():
@@ -31,4 +32,10 @@ async def getarrivalsdata(line):
     output = tfl_api.get_tubedata(options=line)
     return {"data":output}
 
-
+@app.get('/{line}/Arrivals/{station}')
+async def getstationarrivalsdata(line, station):
+    station = station.replace('+',' ')
+    print (station)
+    log.info(f"Loaded {line} arrivals page for {station}")
+    output = tfl_api.get_tubedata(line, station)
+    return {"data": output}
