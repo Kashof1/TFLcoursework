@@ -26,11 +26,11 @@ async def root():
     return {"message": "this is the root page"}
 
 
-@app.get('/{line}')
+'''@app.get('/{line}')
 async def getarrivalsdata(line):
     log.info(f"Loaded {line} arrivals data")
     output = tfl_api.get_tubedata(options=line)
-    return {"data":output}
+    return {"data":output}'''
 
 @app.get('/{line}/Arrivals/{station}')
 async def getstationarrivalsdata(line, station):
