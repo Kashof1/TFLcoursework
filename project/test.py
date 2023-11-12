@@ -28,22 +28,23 @@ while True:
         trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
 
         if trainId not in currentTrains:
-            currentTrains[trainId] = [each['expectedArrival'],'','']
+            #formatting the predicted time nicely so that it can be operated on later
+            formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
+            currentTrains[trainId] = [formattedPrediction,'','']
 
-    for currentTrainline in currentTrains:
+    currentTrainIterator = iter(currentTrains) #iterator used to skip the first item in currentTrains, which serves as a header (potential issues here)
+    next(currentTrainIterator)
+    for currentTrainline in currentTrainIterator:
         if not any(dataLine['vehicleId'] == currentTrainline for dataLine in data): 
             eachArray = currentTrainline
             predictedTime = eachArray[0] 
-            actualDateTime = datetime.now().replace(microsecond=0)
-
-            #generating python datetime objects for each time, using tflapi's format of '%Y-%m-%dT%H:%M:%SZ'
-            predictedDateTime = datetime.strptime(predictedTime, '%Y-%m-%dT%H:%M:%SZ')
+            actualTime = datetime.now().replace(microsecond=0)
 
             #calculating difference in times (in seconds)
             #positive difference --> late train, negative difference --> early train
-            difference = (actualDateTime - predictedDateTime).total_seconds()
+            difference = (actualTime - predictedTime).total_seconds()
             
-            eachArray[1] = actualDateTime
+            eachArray[1] = actualTime
             eachArray[2] = difference
             currentTrains[each['vehicleId']] = eachArray
 
