@@ -34,9 +34,9 @@ while True:
 
     currentTrainIterator = iter(currentTrains) #iterator used to skip the first item in currentTrains, which serves as a header (potential issues here)
     next(currentTrainIterator)
-    for currentTrainline in currentTrainIterator:
-        if not any(dataLine['vehicleId'] == currentTrainline for dataLine in data): 
-            eachArray = currentTrainline
+    for currentTrainid in currentTrainIterator:
+        if not any(dataLine['vehicleId'] == currentTrainid for dataLine in data): 
+            eachArray = currentTrains[currentTrainid]
             predictedTime = eachArray[0] 
             actualTime = datetime.now().replace(microsecond=0)
 
@@ -50,5 +50,7 @@ while True:
 
 
     print (currentTrains)
-    time.sleep(10)
+    print ('*' * 90)
+    time.sleep(5) #each train needs to get popped out into a separte file and deleted from here you fucking idiot thanks
+    # trains that are super early could be being cancelled
 
