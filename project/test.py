@@ -67,15 +67,14 @@ while True:
             
             metavals = { #could investigate more metadata to be used
                 'predictedTime' : predictedTime, #FIGURE OUT HOW TO MAKE THIS ISO 
-                'actualTime' : actualTime.isoformat(),
+                'actualTime' : actualTime,
                 'line' : line,
                 'station' : station.replace(' ','+')
                 }
-            timeval = actualTime.isoformat()
 
-            db.currentCol.insert_one({ #ERROR IN HOW COLLECTION IS BEING REFERENCED
+            currentCol.insert_one({ #ERROR IN HOW COLLECTION IS BEING REFERENCED (potentially resolved?)
                 'meta' : metavals,
-                'time' : timeval,
+                'time' : actualTime,
                 'timediff' : difference
             })
 
