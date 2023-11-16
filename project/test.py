@@ -20,28 +20,25 @@ multiple stations and lines at once"""
 """data[0]['currentLocation'] - sample index for data"""
 
 dbclient = pymongo.MongoClient("mongodb://localhost:27017/")
-db = dbclient["TFLData"]
+db = dbclient['TFLData']
 
 existingCols = db.list_collection_names()
 colName = f"{line}-{station.replace(' ', '+')}-col" #replacing the spaces with + for ease of referencing
 
 if colName not in existingCols:
-    db.createCollection(
-        colName,
-        {
-            timeseries: {
-                timeField: 'time',
-                metaField: 'meta',
-                granularity: 'seconds'
-            }
-        } )
+    currentCol = db.create_collection(colName, timeseries={
+
+            'timeField': "time",
+            'metaField': "meta",
+            'granularity': "seconds"
+
+    })
     
 currentCol = db[colName] 
 
 currentTrains = {
     "TrainID" : ['PredictedTime', 'ActualTime', 'Difference']
 }
-
 
 
 while True:
@@ -59,8 +56,9 @@ while True:
     next(currentTrainIterator)
     for currentTrainid in currentTrainIterator:
         if not any(dataLine['vehicleId'] == currentTrainid for dataLine in data): #if trainid no longer in api data, then train has reached station
+            print('TRAIN REACHED STATION')
             eachArray = currentTrains[currentTrainid]
-            predictedTime = datetime(eachArray[0]) 
+            predictedTime = eachArray[0]
             actualTime = datetime.now().replace(microsecond=0)
 
             #calculating difference in times (in seconds)
@@ -68,13 +66,14 @@ while True:
             difference = (actualTime - predictedTime).total_seconds()
             
             metavals = { #could investigate more metadata to be used
-                'predictedTime' : predictedTime.isoformat(), 
+                'predictedTime' : predictedTime, #FIGURE OUT HOW TO MAKE THIS ISO 
                 'actualTime' : actualTime.isoformat(),
                 'line' : line,
                 'station' : station.replace(' ','+')
                 }
             timeval = actualTime.isoformat()
-            db.colName.insert_one({
+
+            db.currentCol.insert_one({ #ERROR IN HOW COLLECTION IS BEING REFERENCED
                 'meta' : metavals,
                 'time' : timeval,
                 'timediff' : difference
@@ -83,7 +82,10 @@ while True:
 
     print (currentTrains)
     print ('*' * 90)
-    print (db.colName.find())
+    results = currentCol.find()
+    for doc in results:
+        print(doc)
+
     print ('*' * 90)
     time.sleep(5) #each train needs to get popped out into a separate file and deleted from here you fucking idiot thanks
     # trains that are super early could be being cancelled
