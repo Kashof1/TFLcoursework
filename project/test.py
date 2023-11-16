@@ -83,6 +83,8 @@ while True:
 
     print (currentTrains)
     print ('*' * 90)
+    print (db.colName.find())
+    print ('*' * 90)
     time.sleep(5) #each train needs to get popped out into a separate file and deleted from here you fucking idiot thanks
     # trains that are super early could be being cancelled
 
