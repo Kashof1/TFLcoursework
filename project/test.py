@@ -82,7 +82,7 @@ while True:
     print (currentTrains)
     print ('*' * 90)
     results = currentCol.find()
-    for doc in results:
+    for doc in results: #GETS STUCK IN INFINITE LOOP HERE(?)... USE MONGOSH TO MONITOR DATABASE STATES
         print(doc)
 
     print ('*' * 90)
