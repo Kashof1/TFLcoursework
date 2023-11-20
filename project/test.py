@@ -1,7 +1,9 @@
 """TO DO: 
--When a train arrives at its station, that vehicleId is removed from the dataset (i.e. no longer found)
--find a way to loop the code to repeatedly call new data from API (every 30 seconds).
--when a train has had its ActualTime field filled, remove it from the dictionary and put the information into a separate file"""
+-remove trains that have been found from dictionary
+-investiage time format for mongosh, and unify this so all time data is same format
+-filter out trains that are being cancelled (absurdly early)
+-find other metadata that could be used
+"""
 from datetime import datetime, timedelta
 import time
 
@@ -52,10 +54,10 @@ while True:
             formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
             currentTrains[trainId] = [formattedPrediction,'','']
 
-    currentTrainIterator = iter(currentTrains) #iterator used to skip the first item in currentTrains, which serves as a header
-    next(currentTrainIterator)
-    for currentTrainid in currentTrainIterator:
-        if not any(dataLine['vehicleId'] == currentTrainid for dataLine in data): #if trainid no longer in api data, then train has reached station
+    for currentTrainid in list(currentTrains):
+        if currentTrainid == 'TrainID': #skipping header
+            pass
+        elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in data): #if trainid no longer in api data, then train has reached station
             print('TRAIN REACHED STATION')
             eachArray = currentTrains[currentTrainid]
             predictedTime = eachArray[0]
@@ -66,26 +68,26 @@ while True:
             difference = (actualTime - predictedTime).total_seconds()
             
             metavals = { #could investigate more metadata to be used
-                'predictedTime' : predictedTime, #FIGURE OUT HOW TO MAKE THIS ISO 
+                'predictedTime' : predictedTime, 
                 'actualTime' : actualTime,
                 'line' : line,
                 'station' : station.replace(' ','+')
                 }
 
-            currentCol.insert_one({ #ERROR IN HOW COLLECTION IS BEING REFERENCED (potentially resolved?)
+            currentCol.insert_one({ 
                 'meta' : metavals,
                 'time' : actualTime,
                 'timediff' : difference
             })
+            del currentTrains[currentTrainid]
 
 
     print (currentTrains)
     print ('*' * 90)
     results = currentCol.find()
-    for doc in results: #GETS STUCK IN INFINITE LOOP HERE(?)... USE MONGOSH TO MONITOR DATABASE STATES
-        print(doc)
+
 
     print ('*' * 90)
-    time.sleep(5) #each train needs to get popped out into a separate file and deleted from here you fucking idiot thanks
-    # trains that are super early could be being cancelled
+    time.sleep(5) #each train needs to get popped out into a separate file and deleted from here you fucking idiot thanks (deleted before loop)
+    # trains that are super early could be being cancelled, decide a criteria to filter these out
 
