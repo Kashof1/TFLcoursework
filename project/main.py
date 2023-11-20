@@ -37,5 +37,5 @@ async def getstationarrivalsdata(line, station):
     station = station.replace('+',' ')
     print (station)
     log.info(f"Loaded {line} arrivals page for {station}")
-    output = tfl_api.get_tubedata(line, station)
+    output = tfl_api.get_data(line, station)
     return {"data": output}

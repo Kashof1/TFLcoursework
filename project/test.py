@@ -14,22 +14,17 @@ tfl_api = get_tflstation()
 line = 'jubilee'
 station = 'Stratford Underground Station'
 
-"""Currently developing for Jubilee at Stratford; need to ensure that code works for any line at any station before implementing
-multiple stations and lines at once"""
-
 dbclient = pymongo.MongoClient("mongodb://localhost:27017/")
 db = dbclient['TFLData']
 
-existingCols = db.list_collection_names()
 colName = f"{line}_{station.replace(' ', '+')}_col" #replacing the spaces with + for ease of referencing
+existingCols = db.list_collection_names()
 
 if colName not in existingCols:
     currentCol = db.create_collection(colName, timeseries={
-
             'timeField': "time",
             'metaField': "meta",
             'granularity': "seconds"
-
     })
     
 currentCol = db[colName] 
@@ -38,9 +33,8 @@ currentTrains = {
     "TrainID" : ['PredictedTime', 'ActualTime', 'Difference']
 }
 
-
 while True:
-    arrivalsdata = tfl_api.get_tubedata(line=line, station=station) 
+    arrivalsdata = tfl_api.get_data(line=line, station=station) 
 
     for each in arrivalsdata:
         trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often

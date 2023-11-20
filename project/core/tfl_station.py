@@ -11,7 +11,7 @@ class get_tflstation():
 
     arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
 
-    def __init__(self) -> None:
+    def __init__(self):
         log.info("LOADED TFL API")
         self.base_url = 'https://api.tfl.gov.uk/Line/'
         #station name (for convenience) paired with naptanid needed for API call, in dictionary form
@@ -19,7 +19,7 @@ class get_tflstation():
         with open (self.directory, 'r', encoding='utf8') as file:
             self.dictofoptions = json.load(file)
 
-    def get_tubedata(self, line: str, station: str):
+    def get_data(self, line: str, station: str):
         stationID, line = self.validate_option(line, station)
         if len(stationID) == 0 or len(line) == 0:
             return "No valid options provided"
@@ -39,7 +39,3 @@ class get_tflstation():
             valid = False
         
         return (stationID, line) if valid == True else ('','') 
-
-
-        
-#look into validatingn both station and line, and returning tuple of both
