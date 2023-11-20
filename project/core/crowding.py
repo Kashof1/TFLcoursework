@@ -3,7 +3,12 @@ import json
 import logging
 
 from core.utils import get_url
-"""confirm what type of oop construct is best used here"""
+
+"""
+confirm what type of oop construct is best used here
+ALSO PENDING TESTING
+"""
+
 log = logging.getLogger(__name__)
 
 class get_crowdingdata():
