@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-from urllib.parse import quote, urlencode
 
 from core.utils import get_url
 
@@ -22,6 +21,7 @@ class get_tflstation():
     def get_data(self, line: str, station: str):
         stationID, line = self.validate_option(line, station)
         if len(stationID) == 0 or len(line) == 0:
+            log.info('Invalid option(s) provided to get_tflstation instance')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Arrivals/{stationID}"
         data = get_url(url)
