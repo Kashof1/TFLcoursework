@@ -1,5 +1,4 @@
 """TO DO: 
--investiage time format for mongosh, and unify this so all time data is same format
 -filter out trains that are being cancelled (absurdly early)
 -find other metadata that could be used
 """
