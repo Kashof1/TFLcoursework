@@ -17,13 +17,11 @@ station = 'Stratford Underground Station'
 """Currently developing for Jubilee at Stratford; need to ensure that code works for any line at any station before implementing
 multiple stations and lines at once"""
 
-"""data[0]['currentLocation'] - sample index for data"""
-
 dbclient = pymongo.MongoClient("mongodb://localhost:27017/")
 db = dbclient['TFLData']
 
 existingCols = db.list_collection_names()
-colName = f"{line}-{station.replace(' ', '+')}-col" #replacing the spaces with + for ease of referencing
+colName = f"{line}_{station.replace(' ', '+')}_col" #replacing the spaces with + for ease of referencing
 
 if colName not in existingCols:
     currentCol = db.create_collection(colName, timeseries={
@@ -42,9 +40,9 @@ currentTrains = {
 
 
 while True:
-    data = tfl_api.get_tubedata(line=line, station=station) 
+    arrivalsdata = tfl_api.get_tubedata(line=line, station=station) 
 
-    for each in data:
+    for each in arrivalsdata:
         trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
 
         if trainId not in currentTrains:
@@ -55,7 +53,7 @@ while True:
     for currentTrainid in list(currentTrains):
         if currentTrainid == 'TrainID': #skipping header
             pass
-        elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in data): #if trainid no longer in api data, then train has reached station
+        elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata): #if trainid no longer in api data, then train has reached station
             print('TRAIN REACHED STATION')
             eachArray = currentTrains[currentTrainid]
             predictedTime = eachArray[0]

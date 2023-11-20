@@ -21,3 +21,12 @@
 2023-10-31 14:36:46 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals/940GZZLUHLT
 2023-10-31 14:37:05 - main - INFO - Loaded central arrivals page for Hainault Underground Station
 2023-10-31 14:37:05 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals/940GZZLUHLT
+2023-11-09 14:24:05 - core.tfl_station - INFO - LOADED TFL API
+2023-11-09 14:24:27 - main - INFO - Loaded root page
+2023-11-09 14:24:30 - main - INFO - Loaded root page
+2023-11-09 14:24:39 - main - INFO - Loaded district arrivals page for Becontree Underground Station
+2023-11-09 14:24:39 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/district/Arrivals/940GZZLUBEC
+2023-11-09 14:27:37 - core.tfl_station - INFO - LOADED TFL API
+2023-11-09 14:27:44 - main - INFO - Loaded root page
+2023-11-09 14:27:57 - main - INFO - Loaded hammersmith-city arrivals page for West Ham Underground Station
+2023-11-09 14:27:58 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/hammersmith-city/Arrivals/940GZZLUWHM
