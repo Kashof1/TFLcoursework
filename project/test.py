@@ -7,7 +7,8 @@ import time
 
 import pymongo
 
-from core.tfl_station import get_tflstation
+from core.tfl import get_tflstation
+from core.tfl import get_crowdingdata
 
 tfl_api = get_tflstation()
 
@@ -57,7 +58,7 @@ while True:
             #positive difference --> late train, negative difference --> early train
             difference = (actualTime - predictedTime).total_seconds()
 
-            if not(difference > 600): #anything that takes longer than 10 minutes to arrive is outlier, probably cancelled train
+            if not(difference < 600): #anything that takes longer than 10 minutes to arrive is outlier, probably cancelled train
                 metavals = { #could investigate more metadata to be used
                     'predictedTime' : predictedTime, 
                     'actualTime' : actualTime,

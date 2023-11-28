@@ -3,9 +3,8 @@ import os
 from pathlib import Path
 from fastapi import FastAPI
 from core.tfl_line import get_tflline
-from core.tfl_station import get_tflstation
-from core.crowding import get_crowdingdata
-
+from core.tfl import get_tflstation
+from core.tfl import get_crowdingdata
 logs_file = Path(Path().resolve(), "log.txt")
 logs_file.touch(exist_ok=True)
 

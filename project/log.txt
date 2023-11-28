@@ -30,3 +30,23 @@
 2023-11-09 14:27:44 - main - INFO - Loaded root page
 2023-11-09 14:27:57 - main - INFO - Loaded hammersmith-city arrivals page for West Ham Underground Station
 2023-11-09 14:27:58 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/hammersmith-city/Arrivals/940GZZLUWHM
+2023-11-21 08:57:19 - core.tfl_station - INFO - LOADED TFL API
+2023-11-21 08:57:19 - core.crowding - INFO - LOADED CROWDING API
+2023-11-21 08:57:26 - main - INFO - Loaded root page
+2023-11-21 08:57:28 - main - INFO - Loaded root page
+2023-11-21 08:57:40 - main - INFO - Loaded crowding page for HainaultUndergroundStation
+2023-11-21 08:57:40 - core.crowding - INFO - Invalid option(s) provided to get_crowdingdata instance
+2023-11-21 08:57:55 - core.tfl_station - INFO - LOADED TFL API
+2023-11-21 08:57:55 - core.crowding - INFO - LOADED CROWDING API
+2023-11-21 08:57:55 - main - INFO - Loaded crowding page for HainaultUndergroundStation
+2023-11-21 08:57:55 - core.crowding - INFO - Invalid option(s) provided to get_crowdingdata instance
+2023-11-21 08:58:03 - core.tfl_station - INFO - LOADED TFL API
+2023-11-21 08:58:03 - core.crowding - INFO - LOADED CROWDING API
+2023-11-21 08:58:03 - main - INFO - Loaded crowding page for Hainault Underground Station
+2023-11-21 13:57:44 - core.tfl_station - INFO - LOADED TFL API
+2023-11-21 13:57:44 - core.crowding - INFO - LOADED CROWDING API
+2023-11-21 13:57:52 - main - INFO - Loaded root page
+2023-11-21 13:58:05 - main - INFO - Loaded crowding page for Hainault Underground Station
+2023-11-21 13:58:06 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/crowding/940GZZLUHLT/Live
+2023-11-28 14:07:28 - core.tfl_station - INFO - LOADED TFL API
+2023-11-28 14:07:28 - core.crowding - INFO - LOADED CROWDING API

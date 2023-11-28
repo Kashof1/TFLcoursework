@@ -11,7 +11,7 @@ class get_tflstation():
     arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
 
     def __init__(self):
-        log.info("LOADED TFL API")
+        log.info("LOADED TFL STATION ARRIVALS API")
         self.base_url = 'https://api.tfl.gov.uk/Line/'
         #station name (for convenience) paired with naptanid needed for API call, in dictionary form
         self.directory = os.path.join('data','stations.json')
@@ -39,3 +39,34 @@ class get_tflstation():
             valid = False
         
         return (stationID, line) if valid == True else ('','') 
+    
+"""
+confirm what type of oop construct is best used here
+ALSO PENDING TESTING
+"""
+
+class get_crowdingdata():
+    def __init__(self):
+        log.info('LOADED CROWDING API')
+        self.base_url = 'https://api.tfl.gov.uk/crowding/'
+        self.directory = os.path.join('data', 'stations.json')
+        with open (self.directory, 'r', encoding='utf8') as file:
+            self.dictofoptions = json.load(file)
+
+    def get_data(self, station: str):
+        stationID = self.validate_option(station)
+        if not stationID:
+            log.info('Invalid option(s) provided to get_crowdingdata instance')
+            return "No valid options provided"
+        url = f"{self.base_url}{stationID}/Live"
+        data = get_url(url)
+        return data
+
+    def validate_option(self, station: str):
+        valid = True
+        if station in self.dictofoptions:
+            stationID = self.dictofoptions[station]
+        else:
+            valid = False
+        
+        return stationID if valid == True else ''
