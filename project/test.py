@@ -56,19 +56,20 @@ while True:
             #calculating difference in times (in seconds)
             #positive difference --> late train, negative difference --> early train
             difference = (actualTime - predictedTime).total_seconds()
-            
-            metavals = { #could investigate more metadata to be used
-                'predictedTime' : predictedTime, 
-                'actualTime' : actualTime,
-                'line' : line,
-                'station' : station.replace(' ','+')
-                }
 
-            currentCol.insert_one({ 
-                'meta' : metavals,
-                'time' : actualTime,
-                'timediff' : difference
-            })
+            if not(difference > 600): #anything that takes longer than 10 minutes to arrive is outlier, probably cancelled train
+                metavals = { #could investigate more metadata to be used
+                    'predictedTime' : predictedTime, 
+                    'actualTime' : actualTime,
+                    'line' : line,
+                    'station' : station.replace(' ','+')
+                    }
+
+                currentCol.insert_one({ 
+                    'meta' : metavals,
+                    'time' : actualTime,
+                    'timediff' : difference
+                })
             del currentTrains[currentTrainid]
 
 
