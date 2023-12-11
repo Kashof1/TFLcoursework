@@ -70,3 +70,28 @@ class get_crowdingdata():
             valid = False
         
         return stationID if valid == True else ''
+    
+
+class get_disruptionstatus():
+
+    arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
+
+    def __init__(self):
+        log.info('LOADED DISRUPTION STATUS API')
+        self.base_url = 'https://api.tfl.gov.uk/Line/'
+
+    def get_data(self, line: str):
+        line = self.validate_option(line)
+        if not line:
+            log.info('Invalid line name provided to get_disruptionstatus instance')
+            return "No valid options provided"
+        url = f"{self.base_url}{line}/Disruption"
+        data = get_url(url)
+        return data
+
+    def validate_option(self, line: str):
+        valid = True
+        if line not in self.arrayofoptions:
+            valid = False
+        return line if valid == True else ''
+    
