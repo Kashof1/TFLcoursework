@@ -41,7 +41,7 @@ class get_tflstation():
         return (stationID, line) if valid == True else ('','') 
     
 """
-confirm what type of oop construct is best used here
+confirm what type of oop construct is best used here (done)
 ALSO PENDING TESTING
 """
 
