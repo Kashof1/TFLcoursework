@@ -51,7 +51,6 @@ while True:
         if currentTrainid == 'TrainID': #skipping header
             pass
         elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata): #if trainid no longer in api data, then train has reached station
-            print('TRAIN REACHED STATION')
             eachArray = currentTrains[currentTrainid]
             predictedTime = eachArray[0]
             actualTime = datetime.now().replace(microsecond=0)
