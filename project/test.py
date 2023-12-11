@@ -10,7 +10,8 @@ import pymongo
 from core.tfl import get_tflstation
 from core.tfl import get_crowdingdata
 
-tfl_api = get_tflstation()
+station_api = get_tflstation()
+crowding_api = get_crowdingdata()
 
 line = 'jubilee'
 station = 'Stratford Underground Station'
@@ -35,7 +36,8 @@ currentTrains = {
 }
 
 while True:
-    arrivalsdata = tfl_api.get_data(line=line, station=station) 
+    arrivalsdata = station_api.get_data(line=line, station=station) 
+    crowdingdata = crowding_api.get_data(station=station)
 
     for each in arrivalsdata:
         trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
@@ -58,12 +60,13 @@ while True:
             #positive difference --> late train, negative difference --> early train
             difference = (actualTime - predictedTime).total_seconds()
 
-            if not(difference < 600): #anything that takes longer than 10 minutes to arrive is outlier, probably cancelled train
+            if difference > -600: #trains arriving more than 10 minutes early are outliers, likely cancelled trains
                 metavals = { #could investigate more metadata to be used
                     'predictedTime' : predictedTime, 
                     'actualTime' : actualTime,
                     'line' : line,
-                    'station' : station.replace(' ','+')
+                    'station' : station.replace(' ','+'),
+                    'crowding' : crowdingdata['percentageOfBaseline'] #value for crowding
                     }
 
                 currentCol.insert_one({ 
@@ -71,7 +74,7 @@ while True:
                     'time' : actualTime,
                     'timediff' : difference
                 })
-            del currentTrains[currentTrainid]
+            del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
     print (currentTrains)
@@ -81,5 +84,5 @@ while True:
 
     print ('*' * 90)
     time.sleep(5) #each train needs to get popped out into a separate file and deleted from here you fucking idiot thanks (deleted before loop)
-    # trains that are super early could be being cancelled, decide a criteria to filter these out
+
 
