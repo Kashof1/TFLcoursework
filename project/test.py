@@ -7,11 +7,11 @@ import time
 
 import pymongo
 
-from core.tfl import get_tflstation
-from core.tfl import get_crowdingdata
+from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus
 
 station_api = get_tflstation()
 crowding_api = get_crowdingdata()
+disruption_api = get_disruptionstatus() #the datapoint we want is 'closureText'?
 
 line = 'jubilee'
 station = 'Stratford Underground Station'
