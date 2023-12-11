@@ -83,6 +83,5 @@ while True:
 
 
     print ('*' * 90)
-    time.sleep(5) #each train needs to get popped out into a separate file and deleted from here you fucking idiot thanks (deleted before loop)
-
+    time.sleep(5) 
 
