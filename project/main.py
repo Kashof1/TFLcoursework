@@ -43,7 +43,7 @@ async def getstationarrivalsdata(line, station):
 @app.get('/Crowding/{stationName}/Live')
 async def getstationcrowdingdata(stationName):
     stationName = stationName.replace('+',' ')
-    print (stationName)
     log.info(f"Loaded crowding page for {stationName}")
     output = station_crowd_api.get_data(station = stationName)
+    print (output['percentageOfBaseline'])
     return {"data" : output}
