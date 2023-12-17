@@ -1,7 +1,4 @@
-"""TO DO: 
--filter out trains that are being cancelled (absurdly early)
--find other metadata that could be used
-"""
+
 from datetime import datetime, timedelta
 import time
 
@@ -38,6 +35,7 @@ currentTrains = {
 while True:
     arrivalsdata = station_api.get_data(line=line, station=station) 
     crowdingdata = crowding_api.get_data(station=station)
+    disruptiondata = disruption_api.get_data(line = line)
 
     for each in arrivalsdata:
         trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
@@ -65,7 +63,8 @@ while True:
                     'actualTime' : actualTime,
                     'line' : line,
                     'station' : station.replace(' ','+'),
-                    'crowding' : crowdingdata['percentageOfBaseline'] #value for crowding
+                    'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
+                    'disruptionStatus' : disruptiondata['closureText']
                     }
 
                 currentCol.insert_one({ 
