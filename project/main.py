@@ -1,9 +1,16 @@
 import logging
 import os
+from typing import Optional
 from pathlib import Path
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 from core.tfl_line import get_tflline
 from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus
+
 logs_file = Path(Path().resolve(), "log.txt")
 logs_file.touch(exist_ok=True)
 
@@ -17,14 +24,21 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 app = FastAPI()
+app.mount('/static', StaticFiles(directory='templates/static'), name='static')
+templates = Jinja2Templates(directory='templates')
+
 station_train_api = get_tflstation()
 station_crowd_api = get_crowdingdata()
 line_disruption_api = get_disruptionstatus()
 
-@app.get('/')
-async def root():
+@app.get('/', response_class=HTMLResponse)
+def root(request : Request):
     log.info("Loaded root page")
-    return {"message": "this is the root page"}
+    return templates.TemplateResponse(
+        'index.html',
+        {'request' : request,
+         'data': ['home page']}
+    )
 
 
 '''@app.get('/{line}')
