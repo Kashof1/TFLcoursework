@@ -67,3 +67,9 @@ async def getarrivalsdata(line):
     log.info(f"Loaded {line} disruptions data page")
     output = line_disruption_api.get_data(line=line)
     return {"data":output}
+
+@app.get('/testpage')
+async def testpage(request: Request):
+    return templates.TemplateResponse(
+        name = 'index.html', context={'request':request, 'data':'hello'}
+    )
