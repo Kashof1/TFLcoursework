@@ -4,11 +4,12 @@ import time
 
 import pymongo
 
-from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus
+from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus, get_statusseverity
 
 station_api = get_tflstation()
 crowding_api = get_crowdingdata()
 disruption_api = get_disruptionstatus() #the datapoint we want is 'closureText'?
+status_api = get_statusseverity() 
 
 line = 'jubilee'
 station = 'Stratford Underground Station'
@@ -35,7 +36,8 @@ currentTrains = {
 while True:
     arrivalsdata = station_api.get_data(line=line, station=station) 
     crowdingdata = crowding_api.get_data(station=station)
-    disruptiondata = disruption_api.get_data(line = line)
+    disruptiondata = disruption_api.get_data(line=line)
+    statusSeverityValue = status_api.get_data(line=line)
 
     for each in arrivalsdata:
         trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
@@ -64,7 +66,8 @@ while True:
                     'line' : line,
                     'station' : station.replace(' ','+'),
                     'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
-                    'disruptionStatus' : disruptiondata['closureText']
+                    'disruptionStatus' : disruptiondata['closureText'],
+                    'statusSeverity' : statusSeverityValue
                     }
 
                 currentCol.insert_one({ 

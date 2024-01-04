@@ -91,3 +91,27 @@ class get_disruptionstatus():
             valid = False
         return line if valid == True else ''
     
+
+class get_statusseverity(get_disruptionstatus): #inheritance used as only difference here is what comes after the base url
+
+    def get_data(self, line:str):
+        line = self.validate_option(line)
+        if not line:
+            log.info('Invalid line name provided to get_statusseverity instance')
+            return "No valid options provided"
+        url = f"{self.base_url}{line}/Status"
+        data = get_url(url)
+
+        '''potentially multiple different severity levels can be reported for one line, each pertaining to a different section of the line. In order to gauge
+        the overall performance of a line, it is best to take an average of these severity codes if there are multiple. If not, simply take the single provided 
+        value and assume it applies to the whole line'''
+        
+        statusList = data['lineStatuses']
+        numOfReports = len(statusList)
+        if numOfReports == 1:
+            return statusList[0]['statusSeverity']
+        else:
+            total = 0
+            for each in statusList:
+                total += each['statusSeverity']
+            return total/numOfReports
