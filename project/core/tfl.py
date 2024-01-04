@@ -105,8 +105,8 @@ class get_statusseverity(get_disruptionstatus): #inheritance used as only differ
         '''potentially multiple different severity levels can be reported for one line, each pertaining to a different section of the line. In order to gauge
         the overall performance of a line, it is best to take an average of these severity codes if there are multiple. If not, simply take the single provided 
         value and assume it applies to the whole line'''
-        
-        statusList = data['lineStatuses']
+
+        statusList = data[0]['lineStatuses'] #index 0 here because tfl returns a list of one item when you specify for a single line, rather than a list with each line
         numOfReports = len(statusList)
         if numOfReports == 1:
             return statusList[0]['statusSeverity']
