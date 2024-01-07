@@ -83,7 +83,10 @@ class get_disruptionstatus():
             return "No valid options provided"
         url = f"{self.base_url}{line}/Disruption"
         data = get_url(url)
-        return data
+        if not data:
+            return None
+        else:
+            return data[0]['closureText']
 
     def validate_option(self, line: str):
         valid = True

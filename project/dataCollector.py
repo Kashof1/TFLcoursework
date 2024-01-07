@@ -36,7 +36,7 @@ currentTrains = {
 while True:
     arrivalsdata = station_api.get_data(line=line, station=station) 
     crowdingdata = crowding_api.get_data(station=station)
-    disruptiondata = disruption_api.get_data(line=line)
+    disruptionStatus = disruption_api.get_data(line=line)
     statusSeverityValue = status_api.get_data(line=line)
 
     for each in arrivalsdata:
@@ -66,7 +66,7 @@ while True:
                     'line' : line,
                     'station' : station.replace(' ','+'),
                     'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
-                    'disruptionStatus' : disruptiondata['closureText'],
+                    'disruptionStatus' : disruptionStatus,
                     'statusSeverity' : statusSeverityValue
                     }
 
@@ -85,4 +85,10 @@ while True:
 
     print ('*' * 90)
     time.sleep(5) 
+
+
+    '''MASSIVE ERROR:
+        getting repeats of the same train (identified by the same predicted time), and these aren't occuring at the regular 5 second intervals (recheck this in case the collection has become unordered)
+        either find root cause or find workaround
+    '''
 
