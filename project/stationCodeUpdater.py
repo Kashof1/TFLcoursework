@@ -28,7 +28,7 @@ def stationLineCombinationUpdater():
         stop_points = get_url(f'https://api.tfl.gov.uk/line/{line["id"]}/stoppoints')
         for each in stop_points:
             if 'tube' in each['modes']:
-                final.append((line['name'], each['commonName']))
+                final.append((line['id'], each['commonName']))
     
     currentpath = os.path.dirname(os.path.realpath(__file__))
     savepath = os.path.join(currentpath,'data','stationLineCombos.json')
