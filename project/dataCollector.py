@@ -70,11 +70,13 @@ while True:
                     'statusSeverity' : statusSeverityValue
                     }
 
-                currentCol.insert_one({ 
-                    'meta' : metavals,
-                    'time' : actualTime,
-                    'timediff' : difference
-                })
+                #only adding this new prediction to the database if it isn't already there (uniquely identified using predictedTime)
+                if not currentCol.count_documents({'meta.predictedTime' : predictedTime}): 
+                    currentCol.insert_one({ 
+                        'meta' : metavals,
+                        'time' : actualTime,
+                        'timediff' : difference
+                    })
             del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
@@ -90,5 +92,7 @@ while True:
     '''MASSIVE ERROR:
         getting repeats of the same train (identified by the same predicted time), and these aren't occuring at the regular 5 second intervals (recheck this in case the collection has become unordered)
         either find root cause or find workaround
+
+        POTENTIALLY RESOLVED
     '''
 

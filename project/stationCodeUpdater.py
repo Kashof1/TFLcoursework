@@ -18,14 +18,26 @@ def stationNaptanUpdater():
     savepath = os.path.join(currentpath,'data','stations.json')
 
     with open (savepath, 'w') as outputfile:
-        json.dump (final, outputfile)
+        json.dump(final, outputfile)
 
 def stationLineCombinationUpdater():
-    final = {}
+    final = []
     lines = get_url('https://api.tfl.gov.uk/line/mode/tube/status')
-    for each in lines:
-        print (each['lineStatuses'][0]['statusSeverity'])
-        print ('*' *20)
+    for line in lines:
+        stations = []
+        stop_points = get_url(f'https://api.tfl.gov.uk/line/{line["id"]}/stoppoints')
+        for each in stop_points:
+            if 'tube' in each['modes']:
+                final.append((line['name'], each['commonName']))
+    
+    currentpath = os.path.dirname(os.path.realpath(__file__))
+    savepath = os.path.join(currentpath,'data','stationLineCombos.json')
+
+    print (len(final))
+
+    with open (savepath, 'w') as outputfile:
+        json.dump(final, outputfile)
+
 
 
 if __name__ == '__main__':
