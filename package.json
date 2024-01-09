@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@mapbox/togeojson": "^0.16.2",
+    "@xmldom/xmldom": "^0.8.10",
+    "leaflet-filelayer": "^1.0.0"
+  }
+}

@@ -6,7 +6,14 @@ from core.utils import get_url
 
 log = logging.getLogger(__name__)
 
-class get_tflstation():
+class app_keyAppender():
+    def __init__(self):
+        pass
+
+    def appender(self, url):
+        return f'{url}?app_key=e6c88e6d39e1495cbb3f9d24d1fe8994&app_key=a475df8e7e204050ae339c3884401802'
+
+class get_tflstation(app_keyAppender):
 
     arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
 
@@ -24,7 +31,7 @@ class get_tflstation():
             log.info('Invalid option(s) provided to get_tflstation instance')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Arrivals/{stationID}"
-        data = get_url(url)
+        data = get_url(self.appender(url))
         return data
 
 
@@ -41,7 +48,7 @@ class get_tflstation():
         return (stationID, line) if valid == True else ('','') 
     
 
-class get_crowdingdata():
+class get_crowdingdata(app_keyAppender):
     def __init__(self):
         log.info('LOADED CROWDING API')
         self.base_url = 'https://api.tfl.gov.uk/crowding/'
@@ -55,7 +62,7 @@ class get_crowdingdata():
             log.info('Invalid option(s) provided to get_crowdingdata instance')
             return "No valid options provided"
         url = f"{self.base_url}{stationID}/Live"
-        data = get_url(url)
+        data = get_url(self.appender(url))
         return data
 
     def validate_option(self, station: str):
@@ -68,7 +75,7 @@ class get_crowdingdata():
         return stationID if valid == True else ''
     
 
-class get_disruptionstatus():
+class get_disruptionstatus(app_keyAppender):
 
     arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
 
@@ -82,7 +89,7 @@ class get_disruptionstatus():
             log.info('Invalid line name provided to get_disruptionstatus instance')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Disruption"
-        data = get_url(url)
+        data = get_url(self.appender(url))
         if not data:
             return None
         else:
@@ -95,7 +102,7 @@ class get_disruptionstatus():
         return line if valid == True else ''
     
 
-class get_statusseverity(get_disruptionstatus): #inheritance used as only difference here is what comes after the base url
+class get_statusseverity(get_disruptionstatus, app_keyAppender): #inheritance used as only difference here is what comes after the base url
 
     def get_data(self, line:str):
         line = self.validate_option(line)
@@ -103,7 +110,7 @@ class get_statusseverity(get_disruptionstatus): #inheritance used as only differ
             log.info('Invalid line name provided to get_statusseverity instance')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Status"
-        data = get_url(url)
+        data = get_url(self.appender(url))
 
         '''potentially multiple different severity levels can be reported for one line, each pertaining to a different section of the line. In order to gauge
         the overall performance of a line, it is best to take an average of these severity codes if there are multiple. If not, simply take the single provided 

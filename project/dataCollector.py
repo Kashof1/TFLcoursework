@@ -1,7 +1,10 @@
+import concurrent.futures
 from datetime import datetime, timedelta
 import json
 import os
+import threading
 import time
+import sys
 
 import pymongo
 
@@ -20,8 +23,6 @@ class tfl_dataCollector:
         self.status_api = status_api
 
     def collector(self):
-
-
         colName = f"{self.line}_{self.station.replace(' ', '+')}_col" #replacing the spaces with + for ease of referencing
         existingCols = db.list_collection_names()
         if colName not in existingCols:
@@ -35,52 +36,60 @@ class tfl_dataCollector:
         currentTrains = {
             "TrainID" : ['PredictedTime', 'ActualTime', 'Difference']
         }
+        while True:
+            try:
+                arrivalsdata = self.station_api.get_data(line=self.line, station=self.station) 
+                crowdingdata = self.crowding_api.get_data(station=self.station)
+                disruptionStatus = self.disruption_api.get_data(line=self.line)
+                statusSeverityValue = self.status_api.get_data(line=self.line)
 
-        arrivalsdata = self.station_api.get_data(line=self.line, station=self.station) 
-        crowdingdata = self.crowding_api.get_data(station=self.station)
-        disruptionStatus = self.disruption_api.get_data(line=self.line)
-        statusSeverityValue = self.status_api.get_data(line=self.line)
 
-        for each in arrivalsdata:
-            trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
+                for each in arrivalsdata:
+                    trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
 
-            if trainId not in currentTrains:
-                #formatting the predicted time nicely so that it can be operated on later
-                formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
-                currentTrains[trainId] = [formattedPrediction,'','']
+                    if trainId not in currentTrains:
+                        #formatting the predicted time nicely so that it can be operated on later
+                        formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
+                        currentTrains[trainId] = [formattedPrediction,'','']
 
-        for currentTrainid in list(currentTrains):
-            if currentTrainid == 'TrainID': #skipping header
-                pass
-            elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata): #if trainid no longer in api data, then train has reached station
-                eachArray = currentTrains[currentTrainid]
-                predictedTime = eachArray[0]
-                actualTime = datetime.now().replace(microsecond=0)
+                for currentTrainid in list(currentTrains):
+                    if currentTrainid == 'TrainID': #skipping header
+                        pass
+                    elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata): #if trainid no longer in api data, then train has reached station
+                        eachArray = currentTrains[currentTrainid]
+                        predictedTime = eachArray[0]
+                        actualTime = datetime.now().replace(microsecond=0)
 
-                #calculating difference in times (in seconds)
-                #positive difference --> late train, negative difference --> early train
-                difference = (actualTime - predictedTime).total_seconds()
+                        #calculating difference in times (in seconds)
+                        #positive difference --> late train, negative difference --> early train
+                        difference = (actualTime - predictedTime).total_seconds()
 
-                if difference > -600: #trains arriving more than 10 minutes early are outliers, likely cancelled trains
-                    metavals = { #could investigate more metadata to be used
-                        'predictedTime' : predictedTime, 
-                        'actualTime' : actualTime,
-                        'line' : self.line,
-                        'station' : self.station.replace(' ','+'),
-                        'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
-                        'disruptionStatus' : disruptionStatus,
-                        'statusSeverity' : statusSeverityValue
-                        }
+                        if difference > -600: #trains arriving more than 10 minutes early are outliers, likely cancelled trains
+                            metavals = { #could investigate more metadata to be used
+                                'predictedTime' : predictedTime, 
+                                'actualTime' : actualTime,
+                                'line' : self.line,
+                                'station' : self.station.replace(' ','+'),
+                                'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
+                                'disruptionStatus' : disruptionStatus,
+                                'statusSeverity' : statusSeverityValue
+                                }
 
-                    #only adding this new prediction to the database if it isn't already there (uniquely identified using predictedTime)
-                    if not currentCol.count_documents({'meta.predictedTime' : predictedTime}): 
-                        currentCol.insert_one({ 
-                            'meta' : metavals,
-                            'time' : actualTime,
-                            'timediff' : difference
-                        })
-                del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
+                            #only adding this new prediction to the database if it isn't already there (uniquely identified using predictedTime)
+                            if not currentCol.count_documents({'meta.predictedTime' : predictedTime}): 
+                                print ('should be appending')
+                                currentCol.insert_one({ 
+                                    'meta' : metavals,
+                                    'time' : actualTime,
+                                    'timediff' : difference
+                                })
+                        del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
+            except:
+                print(sys.exc_info())
+                time.sleep(10)
 
+            print (currentTrains)
+            time.sleep(5)
 
 
 if __name__ == '__main__':
@@ -109,12 +118,21 @@ if __name__ == '__main__':
             status_api=status_api
         )
 
-    while True:
-        start = time.time()
+    threads = []
+    start = time.time()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
+        for instance in dictOfInstances:
+            threads.append(executor.submit(dictOfInstances[instance].collector))
+            print (threading.active_count())
+    end = time.time()
+    print ('final time = ', end-start)
+
+    '''while True:
         for each in dictOfInstances:
+            start = time.time()
             dictOfInstances[each].collector()
-        end = time.time()
-        print ('final time is', end-start)
-        time.sleep(5)
+            end = time.time()
+            print ('final time is', end-start)
+        time.sleep(5)'''
 
 """investigating api request cap"""
