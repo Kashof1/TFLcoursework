@@ -1,17 +1,48 @@
 import os
 import json
 import logging
+import time
+from urllib.error import HTTPError
 
 from core.utils import get_url
 
 log = logging.getLogger(__name__)
 
+'''KEYS
+mainsub a: 09e54f9b77ff469f9a72cdb1257f6ee3
+mainsub b: eaacea99f66b4d40b7b93ce9f7744b90
+secondarysub_one a: e6c88e6d39e1495cbb3f9d24d1fe8994
+secondarysub_one b: a475df8e7e204050ae339c3884401802
+secondarysub_two a: 23e0b650662d4a01b41c1ca8bfa781b2
+secondarysub_two b: b85169976bd64be7acff84bbc4940f31
+'''
+
 class app_keyAppender():
     def __init__(self):
         pass
 
+    def dataFetcher(self, url):
+        keylist = ['09e54f9b77ff469f9a72cdb1257f6ee3', 'eaacea99f66b4d40b7b93ce9f7744b90', 'e6c88e6d39e1495cbb3f9d24d1fe8994', 'a475df8e7e204050ae339c3884401802', '23e0b650662d4a01b41c1ca8bfa781b2', 'b85169976bd64be7acff84bbc4940f31']
+        for index in range (len(keylist)):
+            try:
+                targeturl = f'{url}?app_key={keylist[index]}'
+                data = get_url(targeturl)
+                return data
+
+            except HTTPError as err:
+                if err.code == 429: 
+                    pass 
+                else:
+                    print (err)#room for unexpected error management here (discord webhook?)
+                    
+        if index >= len(keylist):
+            print('exhausted')
+            time.sleep(3)
+
+            
     def appender(self, url):
-        return f'{url}?app_key=e6c88e6d39e1495cbb3f9d24d1fe8994&app_key=a475df8e7e204050ae339c3884401802'
+        return f'{url}?app_key=09e54f9b77ff469f9a72cdb1257f6ee3'
+
 
 class get_tflstation(app_keyAppender):
 
@@ -31,7 +62,7 @@ class get_tflstation(app_keyAppender):
             log.info('Invalid option(s) provided to get_tflstation instance')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Arrivals/{stationID}"
-        data = get_url(self.appender(url))
+        data = self.dataFetcher(url=url)
         return data
 
 
@@ -62,7 +93,7 @@ class get_crowdingdata(app_keyAppender):
             log.info('Invalid option(s) provided to get_crowdingdata instance')
             return "No valid options provided"
         url = f"{self.base_url}{stationID}/Live"
-        data = get_url(self.appender(url))
+        data = self.dataFetcher(url=url)
         return data
 
     def validate_option(self, station: str):
@@ -89,7 +120,7 @@ class get_disruptionstatus(app_keyAppender):
             log.info('Invalid line name provided to get_disruptionstatus instance')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Disruption"
-        data = get_url(self.appender(url))
+        data = self.dataFetcher(url=url)
         if not data:
             return None
         else:
@@ -110,7 +141,7 @@ class get_statusseverity(get_disruptionstatus, app_keyAppender): #inheritance us
             log.info('Invalid line name provided to get_statusseverity instance')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Status"
-        data = get_url(self.appender(url))
+        data = self.dataFetcher(url=url)
 
         '''potentially multiple different severity levels can be reported for one line, each pertaining to a different section of the line. In order to gauge
         the overall performance of a line, it is best to take an average of these severity codes if there are multiple. If not, simply take the single provided 
@@ -124,4 +155,11 @@ class get_statusseverity(get_disruptionstatus, app_keyAppender): #inheritance us
             total = 0
             for each in statusList:
                 total += each['statusSeverity']
-            return total/numOfReports
+            return (total/numOfReports)
+        
+if __name__ == '__main__':
+    test = app_keyAppender()
+    while True:
+        data = test.dataFetcher('https://api.tfl.gov.uk/Line/central/Disruption')
+        print (data)
+        

@@ -19,7 +19,7 @@ class tfl_dataCollector:
         self.station = station
         self.station_api = station_api
         self.crowding_api = crowding_api
-        self.disruption_api = disruption_api
+        #self.disruption_api = disruption_api --removed for performance reasons + redundant
         self.status_api = status_api
 
     def collector(self):
@@ -36,12 +36,32 @@ class tfl_dataCollector:
         currentTrains = {
             "TrainID" : ['PredictedTime', 'ActualTime', 'Difference']
         }
+
+        crowdingStart = time.time()
+        statusStart = time.time()
+        crowdingdata = self.crowding_api.get_data(station=self.station)
+        statusSeverityValue = self.status_api.get_data(line=self.line)
+        #ensuring crowding and status data is available in first pass, as both timers will not be large enough for data to be collected yet
+
         while True:
             try:
+                #disruptionStatus = self.disruption_api.get_data(line=self.line)
+
+                crowdingEnd = time.time()
+                statusEnd = time.time()
+                crowdingElapsedTime = crowdingEnd - crowdingStart
+                statusElapsedTime = statusEnd - statusStart
+
+                if crowdingElapsedTime >= 45:
+                    crowdingdata = self.crowding_api.get_data(station=self.station)
+                    crowdingStart = time.time()
+                
+                if statusElapsedTime >= 75:
+                    statusSeverityValue = self.status_api.get_data(line=self.line)
+                    statusStart = time.time()
+
                 arrivalsdata = self.station_api.get_data(line=self.line, station=self.station) 
-                crowdingdata = self.crowding_api.get_data(station=self.station)
-                disruptionStatus = self.disruption_api.get_data(line=self.line)
-                statusSeverityValue = self.status_api.get_data(line=self.line)
+            
 
 
                 for each in arrivalsdata:
@@ -71,26 +91,24 @@ class tfl_dataCollector:
                                 'line' : self.line,
                                 'station' : self.station.replace(' ','+'),
                                 'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
-                                'disruptionStatus' : disruptionStatus,
                                 'statusSeverity' : statusSeverityValue
                                 }
 
                             #only adding this new prediction to the database if it isn't already there (uniquely identified using predictedTime)
                             if not currentCol.count_documents({'meta.predictedTime' : predictedTime}): 
-                                print ('should be appending')
                                 currentCol.insert_one({ 
                                     'meta' : metavals,
                                     'time' : actualTime,
                                     'timediff' : difference
                                 })
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
+
+
+                time.sleep(7.5)
+            
             except:
-                print(sys.exc_info())
-                time.sleep(10)
-
-            print (currentTrains)
-            time.sleep(5)
-
+                print (sys.exc_info())
+                print (threading.active_count())
 
 if __name__ == '__main__':
     #getting file with all the station line pairs
@@ -119,20 +137,11 @@ if __name__ == '__main__':
         )
 
     threads = []
-    start = time.time()
     with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
         for instance in dictOfInstances:
             threads.append(executor.submit(dictOfInstances[instance].collector))
             print (threading.active_count())
-    end = time.time()
-    print ('final time = ', end-start)
 
-    '''while True:
-        for each in dictOfInstances:
-            start = time.time()
-            dictOfInstances[each].collector()
-            end = time.time()
-            print ('final time is', end-start)
-        time.sleep(5)'''
 
-"""investigating api request cap"""
+
+"""INVESTIGATE SPONTANEOUS DEATH OF THREADS (why does this happena and how to avoid)"""
