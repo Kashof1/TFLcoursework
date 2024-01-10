@@ -60,7 +60,7 @@ def stationLocationJson():
                 featurearray.append(Feature(geometry = geometry, properties = properties))
     featurecollection = FeatureCollection(featurearray)
     with open (destFilepath, 'w') as destination:
-        dump(obj=featurecollection, fp=destination)
+        dump(obj=featurearray, fp=destination)
     
 
 

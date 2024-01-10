@@ -8,7 +8,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from core.tfl_line import get_tflline
 from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus
 
 logs_file = Path(Path().resolve(), "log.txt")
