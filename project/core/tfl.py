@@ -23,21 +23,21 @@ class app_keyAppender():
 
     def dataFetcher(self, url):
         keylist = ['09e54f9b77ff469f9a72cdb1257f6ee3', 'eaacea99f66b4d40b7b93ce9f7744b90', 'e6c88e6d39e1495cbb3f9d24d1fe8994', 'a475df8e7e204050ae339c3884401802', '23e0b650662d4a01b41c1ca8bfa781b2', 'b85169976bd64be7acff84bbc4940f31']
-        for index in range (len(keylist)):
-            try:
-                targeturl = f'{url}?app_key={keylist[index]}'
-                data = get_url(targeturl)
-                return data
+        while True:
+            for index in range (len(keylist)):
+                try:
+                    targeturl = f'{url}?app_key={keylist[index]}'
+                    data = get_url(targeturl)
+                    return data
 
-            except HTTPError as err:
-                if err.code == 429: 
-                    pass 
-                else:
-                    print (err)#room for unexpected error management here (discord webhook?)
-                    
-        if index >= len(keylist):
-            print('exhausted')
-            time.sleep(3)
+                except HTTPError as err:
+                    if err.code == 429: 
+                        pass 
+                    else:
+                        print (err)
+                        
+            if index >= len(keylist)-1:
+                time.sleep(5)
 
             
     def appender(self, url):

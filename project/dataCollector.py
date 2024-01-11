@@ -5,6 +5,7 @@ import os
 import threading
 import time
 import sys
+from discord_webhook import DiscordWebhook #webhooks used for monitoring of data collection to ensure it is still running.
 
 import pymongo
 
@@ -104,11 +105,13 @@ class tfl_dataCollector:
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
-                time.sleep(7.5)
+                time.sleep(10)
             
             except:
-                print (sys.exc_info())
-                print (threading.active_count())
+                webhookMessage = f'The error is: "{sys.exc_info()}", and the current thread number is {threading.active_count()}'
+                errorwebhook = DiscordWebhook(url="https://discord.com/api/webhooks/1195118360057360486/ACTrZCQFrhOtda1lzj9cHklXRX9fG8DbwKQun-NybfImzhepf-loiniN1BCy6kAKX7av", content=webhookMessage)
+                errorwebhook.execute()
+                time.sleep(5)
 
 if __name__ == '__main__':
     #getting file with all the station line pairs
@@ -140,8 +143,17 @@ if __name__ == '__main__':
     with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
         for instance in dictOfInstances:
             threads.append(executor.submit(dictOfInstances[instance].collector))
-            print (threading.active_count())
+            time.sleep(0.1)
+        
+        baselineThreads = threading.active_count()
+        baselineMessage = f'The data collector has been initialised. The baseline thread count is {baselineThreads}'
+        baselineWebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=baselineMessage)
+        baselineWebhook.execute()
+    
+    #code reaches this point if the thread pool executor is closed (meaning all threads are dead)
+    criticalMessage = 'CRITICAL ERROR: All threads are closed'
+    criticalWebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=criticalMessage)
+    criticalWebhook.execute()
 
 
 
-"""INVESTIGATE SPONTANEOUS DEATH OF THREADS (why does this happena and how to avoid)"""
