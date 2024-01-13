@@ -40,10 +40,14 @@ class tfl_dataCollector:
 
         crowdingStart = time.time()
         statusStart = time.time()
-        crowdingdata = self.crowding_api.get_data(station=self.station)
-        statusSeverityValue = self.status_api.get_data(line=self.line)
+        while True:
+            try:
+                crowdingdata = self.crowding_api.get_data(station=self.station)
+                statusSeverityValue = self.status_api.get_data(line=self.line)
+                break
+            except:
+                time.sleep(1)
         #ensuring crowding and status data is available in first pass, as both timers will not be large enough for data to be collected yet
-
         while True:
             try:
                 #disruptionStatus = self.disruption_api.get_data(line=self.line)
@@ -62,12 +66,11 @@ class tfl_dataCollector:
                     statusStart = time.time()
 
                 arrivalsdata = self.station_api.get_data(line=self.line, station=self.station) 
-            
+
 
 
                 for each in arrivalsdata:
                     trainId = each['vehicleId'] #defining trainId as a variable for readability; it is used often
-
                     if trainId not in currentTrains:
                         #formatting the predicted time nicely so that it can be operated on later
                         formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
@@ -84,7 +87,6 @@ class tfl_dataCollector:
                         #calculating difference in times (in seconds)
                         #positive difference --> late train, negative difference --> early train
                         difference = (actualTime - predictedTime).total_seconds()
-
                         if difference > -600: #trains arriving more than 10 minutes early are outliers, likely cancelled trains
                             metavals = { #could investigate more metadata to be used
                                 'predictedTime' : predictedTime, 
@@ -102,10 +104,11 @@ class tfl_dataCollector:
                                     'time' : actualTime,
                                     'timediff' : difference
                                 })
+                                print(threading.active_count())
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
-                time.sleep(10)
+                time.sleep(7.5)
             
             except:
                 webhookMessage = f'The error is: "{sys.exc_info()}", and the current thread number is {threading.active_count()}'
@@ -139,9 +142,13 @@ if __name__ == '__main__':
             status_api=status_api
         )
 
+    def hook(args):
+        print (f'Failed thread. {args.exc_value}')
+
+    threading.excepthook = hook
     threads = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
-        for instance in dictOfInstances:
+        for instance in range (384):
             threads.append(executor.submit(dictOfInstances[instance].collector))
             time.sleep(0.1)
         
