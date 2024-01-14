@@ -163,7 +163,7 @@ if __name__ == '__main__':
     with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
         for instance in range (384):
             threads.append(executor.submit(dictOfInstances[instance].collector))
-            time.sleep(0.01)
+            #time.sleep(0.1) --> redundant on the server as it is already so slow, but needed on faster devices such as laptop
         
         statusthread = threading.Thread(target=runStatusUpdater, daemon=True) #set as daemon thread so that it terminates if all other processes die
         #... we don't want this to be the only thread running, causing us to get the false message that the program is still operational.
