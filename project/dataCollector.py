@@ -120,8 +120,12 @@ def runStatusUpdater():
     isRunningMessage = f'The current time is {datetime.now()} and the program is still alive'
     isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
     while True:
-        isRunningwebhook.execute()
-        time.sleep(3600)
+        try:
+            isRunningwebhook.execute()
+            time.sleep(1800)
+        except: #if it errors wait a few seconds and try again until it works
+            time.sleep(5)
+            isRunningwebhook.execute()
         
 
 
