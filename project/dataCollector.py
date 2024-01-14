@@ -108,7 +108,7 @@ class tfl_dataCollector:
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
-                time.sleep(5)
+                time.sleep(3)
             
             except:
                 webhookMessage = f'The error is: "{sys.exc_info()}", and the current thread number is {threading.active_count()}'
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
         for instance in range (384):
             threads.append(executor.submit(dictOfInstances[instance].collector))
-            time.sleep(0.1)
+            time.sleep(0.01)
         
         statusthread = threading.Thread(target=runStatusUpdater, daemon=True) #set as daemon thread so that it terminates if all other processes die
         #... we don't want this to be the only thread running, causing us to get the false message that the program is still operational.
