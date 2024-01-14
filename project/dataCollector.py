@@ -12,7 +12,7 @@ import pymongo
 from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus, get_statusseverity
 
 dbclient = pymongo.MongoClient("mongodb://localhost:27017/")
-db = dbclient['TFLData']
+db = dbclient['TFLDatabase']
 
 class tfl_dataCollector:
     def __init__(self, line, station, station_api, crowding_api, disruption_api, status_api) -> None:
@@ -108,13 +108,21 @@ class tfl_dataCollector:
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
-                time.sleep(7.5)
+                time.sleep(5)
             
             except:
                 webhookMessage = f'The error is: "{sys.exc_info()}", and the current thread number is {threading.active_count()}'
                 errorwebhook = DiscordWebhook(url="https://discord.com/api/webhooks/1195118360057360486/ACTrZCQFrhOtda1lzj9cHklXRX9fG8DbwKQun-NybfImzhepf-loiniN1BCy6kAKX7av", content=webhookMessage)
                 errorwebhook.execute()
                 time.sleep(5)
+    
+    def runStatusUpdater():
+        isRunningMessage = f'The current time is {time.time()} and the program is still alive'
+        isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
+        while True:
+            time.sleep(3600)
+            isRunningwebhook.execute()
+
 
 if __name__ == '__main__':
     #getting file with all the station line pairs

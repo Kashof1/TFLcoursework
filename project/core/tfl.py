@@ -40,10 +40,10 @@ class app_keyAppender():
                         
             if index >= len(keylist)-1:
                 print ('flag 3')
-                time.sleep(5)
+                time.sleep(3)
 
             
-    def appender(self, url):
+    def appender(self, url): #obsolete
         return f'{url}?app_key=09e54f9b77ff469f9a72cdb1257f6ee3'
 
 
