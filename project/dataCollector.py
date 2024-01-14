@@ -116,12 +116,13 @@ class tfl_dataCollector:
                 errorwebhook.execute()
                 time.sleep(5)
     
-    def runStatusUpdater():
-        isRunningMessage = f'The current time is {time.time()} and the program is still alive'
-        isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
-        while True:
-            time.sleep(3600)
-            isRunningwebhook.execute()
+def runStatusUpdater():
+    isRunningMessage = f'The current time is {datetime.now()} and the program is still alive'
+    isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
+    while True:
+        isRunningwebhook.execute()
+        time.sleep(3600)
+        
 
 
 if __name__ == '__main__':
@@ -160,6 +161,11 @@ if __name__ == '__main__':
             threads.append(executor.submit(dictOfInstances[instance].collector))
             time.sleep(0.1)
         
+        statusthread = threading.Thread(target=runStatusUpdater, daemon=True) #set as daemon thread so that it terminates if all other processes die
+        #... we don't want this to be the only thread running, causing us to get the false message that the program is still operational.
+        statusthread.start()
+        
+
         baselineThreads = threading.active_count()
         baselineMessage = f'The data collector has been initialised. The baseline thread count is {baselineThreads}'
         baselineWebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=baselineMessage)
