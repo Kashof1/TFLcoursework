@@ -119,11 +119,13 @@ class tfl_dataCollector:
 def runStatusUpdater():
     isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads'
     isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
+    errorWebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=f'crashed: {e}')
     while True:
         try:
             isRunningwebhook.execute()
-            time.sleep(1800)
-        except: #if it errors wait a few seconds and try again until it works
+            time.sleep(600)
+        except Exception as e: #if it errors wait a few seconds and try again until it works
+            errorWebhook.execute()
             time.sleep(5)
             isRunningwebhook.execute()
         
