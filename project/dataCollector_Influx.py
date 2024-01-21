@@ -104,8 +104,11 @@ class tfl_dataCollector:
                             |> range(start: -1h)\
                             |> filter(fn:(r) => r["_measurement"]== "{measurementName}")\
                             |> filter(fn:(r) => r["predictedTime"]== "{predictedTime}")\ '
-
-                            queryReturn = query_api.query(org=org, query=query)
+                            
+                            try:
+                                queryReturn = query_api.query(org=org, query=query)
+                            except Exception as e:
+                                print (e)
 
                             if (len(queryReturn)): 
                                 write_api.write(bucket='TFLBucket', org=org, record=writeData)
