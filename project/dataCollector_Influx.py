@@ -114,7 +114,7 @@ class tfl_dataCollector:
                                     'timediff' : difference
                                 })'''
                             
-                            print(threading.active_count())
+                            print(threading.active_count()) #every time a train is appended to the db, print the current number of threads (for debugging)
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
