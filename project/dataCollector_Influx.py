@@ -50,7 +50,6 @@ class tfl_dataCollector:
         #ensuring crowding and status data is available in first pass, as both timers will not be large enough for data to be collected yet
         while True:
             try:
-                print ('here')
                 #disruptionStatus = self.disruption_api.get_data(line=self.line)
 
                 crowdingEnd = time.time()
