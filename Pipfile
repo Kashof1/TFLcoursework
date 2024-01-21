@@ -11,6 +11,7 @@ pymongo = "*"
 jinja2 = "*"
 geojson = "*"
 discord-webhook = "*"
+influxdb-client = "*"
 
 [dev-packages]
 
