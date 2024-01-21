@@ -39,7 +39,7 @@ class app_keyAppender():
                     pass
                         
             if index >= len(keylist)-1:
-                print ('flag 3')
+                print ('keys exhausted')
                 time.sleep(3)
 
             
