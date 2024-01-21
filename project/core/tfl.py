@@ -38,8 +38,7 @@ class app_keyAppender():
                 except:
                     pass
                         
-            if index >= len(keylist)-1:
-                print ('keys exhausted')
+            if index >= len(keylist)-1: #if all keys are exhausted, wait before trying again
                 time.sleep(3)
 
             

@@ -98,26 +98,12 @@ class tfl_dataCollector:
                                 .field('timeDiff', difference) \
                                 .time(time=actualTime)
                             
-                            write_api.write(bucket='TFLBucket', org='Ghar', record=writeData)
-                            '''metavals = { #could investigate more metadata to be used
-                                'predictedTime' : predictedTime, 
-                                'actualTime' : actualTime,
-                                'line' : self.line,
-                                'station' : self.station.replace(' ','+'),
-                                'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
-                                'statusSeverity' : statusSeverityValue
-                                }
+                            query = f'from(bucket:"my-bucket")\
+                                |> filter(fn:(r) => r._measurement == "{measurementName}")\
+                                |> filter(fn:(r) => r.predictedTime == "{predictedTime}")\ '
 
-                            #only adding this new prediction to the database if it isn't already there (uniquely identified using predictedTime)
-                            
-                            if not currentCol.count_documents({'meta.predictedTime' : predictedTime}): 
-                                currentCol.insert_one({ 
-                                    'meta' : metavals,
-                                    'time' : actualTime,
-                                    'timediff' : difference
-                                })'''
-                            
-                            print(threading.active_count()) #every time a train is appended to the db, print the current number of threads (for debugging)
+                            write_api.write(bucket='TFLBucket', org='Ghar', record=writeData)
+
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
@@ -180,8 +166,8 @@ if __name__ == '__main__':
             print (count)
             count+=1
             threads.append(executor.submit(dictOfInstances[instance].collector))
-            #time.sleep(0.1) --> redundant on the server as it is already so slow, but needed on faster devices such as laptop
-        
+            time.sleep(0.1) #ensuring no sudden burden on processor
+
         statusthread = threading.Thread(target=runStatusUpdater, daemon=True) #set as daemon thread so that it terminates if all other processes die
         #... we don't want this to be the only thread running, causing us to get the false message that the program is still operational.
         statusthread.start()
