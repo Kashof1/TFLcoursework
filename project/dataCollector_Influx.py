@@ -100,10 +100,10 @@ class tfl_dataCollector:
                             
                             #query to check if the data we are about to add already exists (uniquely identified by the predicted time)
                             #this avoids repeats caused by unreliability of TFL API
-                            query = f'from(bucket:"my-bucket")\
+                            query = f'from(bucket:"TFLBucket")\
                             |> range(start: -1h)\
-                            |> filter(fn:(r) => r["_measurement"] == "{measurementName}")\
-                            |> filter(fn:(r) => r["predictedTime"] == "{predictedTime}")\ '
+                            |> filter(fn:(r) => r["_measurement"]== "{measurementName}")\
+                            |> filter(fn:(r) => r["predictedTime"]== "{predictedTime}")\ '
 
                             queryReturn = query_api.query(org=org, query=query)
 
