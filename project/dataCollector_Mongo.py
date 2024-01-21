@@ -1,3 +1,7 @@
+'''THIS VERSION OF THE DATA COLLECTOR HAS NOW BEEN MADE OBSOLETE BY THE INFLUX VERSION (PREFERRED)
+- keeping this version of the data collector as proof of development and for potential mongo use in other projects
+'''
+
 import concurrent.futures
 from datetime import datetime, timedelta
 import json
