@@ -47,6 +47,7 @@ class tfl_dataCollector:
         #ensuring crowding and status data is available in first pass, as both timers will not be large enough for data to be collected yet
         while True:
             try:
+                print ('here')
                 #disruptionStatus = self.disruption_api.get_data(line=self.line)
 
                 crowdingEnd = time.time()
@@ -172,7 +173,10 @@ if __name__ == '__main__':
     threading.excepthook = hook
     threads = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
+        count = 0
         for instance in range (384):
+            print (count)
+            count+=1
             threads.append(executor.submit(dictOfInstances[instance].collector))
             #time.sleep(0.1) --> redundant on the server as it is already so slow, but needed on faster devices such as laptop
         
