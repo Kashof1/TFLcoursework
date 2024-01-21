@@ -15,7 +15,7 @@ from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus, get
 
 url = "http://localhost:8086"
 org = "Ghar"
-token = "HSy9SVrTr0ALjgmiru2TBcBaKeIQN28broEcB4qBfPb2qNaw-zP4asKs5Pp89ShjMDRMdtV4l77PjRQ3NFTccQ==" #superuser token - could configure token with specific perms
+token = "zpQ87ye8X-oTBcHepculUHxKN-_Ote1JBtK8bWIjnyZQ-zQvQQYGB-Cf-tmPjg0N2nKCJi4nwuX0XRg4iiFG1A==" #superuser token - could configure token with specific perms
 dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 
@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     threading.excepthook = hook
     threads = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=384) as executor:
         count = 0
         for instance in range (384):
             print (count)
