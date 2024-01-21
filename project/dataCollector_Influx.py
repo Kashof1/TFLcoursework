@@ -1,3 +1,5 @@
+'''database token and cpu processes configured for raspberry pi on this file'''
+
 import concurrent.futures
 from datetime import datetime, timedelta
 import json
