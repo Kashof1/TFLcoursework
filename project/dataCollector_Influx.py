@@ -100,7 +100,7 @@ class tfl_dataCollector:
                             
                             #query to check if the data we are about to add already exists (uniquely identified by the predicted time)
                             #this avoids repeats caused by unreliability of TFL API
-                            query = f'from(bucket:"TFLBucket")\
+                            '''query = f'from(bucket:"TFLBucket")\
                             |> range(start: -1h)\
                             |> filter(fn:(r) => r["_measurement"]== "{measurementName}")\
                             |> filter(fn:(r) => r["predictedTime"]== "{predictedTime}")\ '
@@ -111,7 +111,9 @@ class tfl_dataCollector:
                                 print (e)
 
                             if (len(queryReturn)): 
-                                write_api.write(bucket='TFLBucket', org=org, record=writeData)
+                                write_api.write(bucket='TFLBucket', org=org, record=writeData)'''
+                            
+                            write_api.write(bucket='TFLBucket', org=org, record=writeData)
 
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
