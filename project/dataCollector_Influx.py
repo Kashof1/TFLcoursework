@@ -102,8 +102,8 @@ class tfl_dataCollector:
                             #this avoids repeats caused by unreliability of TFL API
                             query = f'from(bucket:"my-bucket")\
                             |> range(start: -1h)\
-                            |> filter(fn:(r) => r.["_measurement"] == "{measurementName}")\
-                            |> filter(fn:(r) => r.["predictedTime"] == "{predictedTime}")\ '
+                            |> filter(fn:(r) => r["_measurement"] == "{measurementName}")\
+                            |> filter(fn:(r) => r["predictedTime"] == "{predictedTime}")\ '
 
                             queryReturn = query_api.query(org=org, query=query)
 
