@@ -20,4 +20,5 @@ query1 = f'from(bucket : "TFLBucket")\
 
 
 item = query_api.query(org=org, query=query1)
-print (len(item))
+if len(item):
+    print ('h')

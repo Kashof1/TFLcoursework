@@ -20,6 +20,7 @@ org = "Ghar"
 token = "zpQ87ye8X-oTBcHepculUHxKN-_Ote1JBtK8bWIjnyZQ-zQvQQYGB-Cf-tmPjg0N2nKCJi4nwuX0XRg4iiFG1A==" #superuser token - could configure token with specific perms
 dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
+query_api = dbclient.query_api()
 
 class tfl_dataCollector:
     def __init__(self, line, station, station_api, crowding_api, disruption_api, status_api) -> None:
@@ -98,11 +99,17 @@ class tfl_dataCollector:
                                 .field('timeDiff', difference) \
                                 .time(time=actualTime)
                             
+                            #query to check if the data we are about to add already exists (uniquely identified by the predicted time)
+                            #this avoids repeats caused by unreliability of TFL API
                             query = f'from(bucket:"my-bucket")\
-                                |> filter(fn:(r) => r._measurement == "{measurementName}")\
-                                |> filter(fn:(r) => r.predictedTime == "{predictedTime}")\ '
+                            |> range(start: -1h)\
+                            |> filter(fn:(r) => r.["_measurement"] == "{measurementName}")\
+                            |> filter(fn:(r) => r.["predictedTime"] == "{predictedTime}")\ '
 
-                            write_api.write(bucket='TFLBucket', org='Ghar', record=writeData)
+                            queryReturn = query_api.query(org=org, query=query)
+
+                            if (len(queryReturn)): 
+                                write_api.write(bucket='TFLBucket', org=org, record=writeData)
 
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
