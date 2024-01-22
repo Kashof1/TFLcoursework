@@ -118,7 +118,7 @@ class tfl_dataCollector:
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
 
-                time.sleep(3)
+                time.sleep(7)
             
             except:
                 webhookMessage = f'The error is: "{sys.exc_info()}", and the current thread number is {threading.active_count()}'
