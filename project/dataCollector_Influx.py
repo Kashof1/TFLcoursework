@@ -117,6 +117,11 @@ class tfl_dataCollector:
 
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
+                        print ('appended') 
+                        #print to terminal every time a train is added to database. used for monitoring/debugging
+                        #(ensuring program is not producing lower than expected output)
+
+
 
                 time.sleep(7)
             
