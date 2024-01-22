@@ -123,7 +123,7 @@ class tfl_dataCollector:
 
 
 
-                time.sleep(7)
+                time.sleep(10)
             
             except:
                 webhookMessage = f'The error is: "{sys.exc_info()}", and the current thread number is {threading.active_count()}'

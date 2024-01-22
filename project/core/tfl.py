@@ -39,7 +39,7 @@ class app_keyAppender():
                     pass
                         
             if index >= len(keylist)-1: #if all keys are exhausted, wait before trying again
-                time.sleep(3)
+                time.sleep(random.randint(3,10)) #random seconds wait to avoid potential overlap between threads as much as possible
 
             
     def appender(self, url): #obsolete
