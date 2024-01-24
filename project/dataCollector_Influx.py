@@ -13,7 +13,7 @@ from discord_webhook import DiscordWebhook #webhooks used for monitoring of data
 from influxdb_client import Point, InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus, get_statusseverity
+from core.tfl import get_tflstation, get_crowdingdata, get_statusseverity
 
 url = "http://localhost:8086"
 org = "Ghar"
@@ -23,7 +23,7 @@ write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
 
 class tfl_dataCollector:
-    def __init__(self, line, station, station_api, crowding_api, disruption_api, status_api) -> None:
+    def __init__(self, line, station, station_api, crowding_api, status_api) -> None:
         self.line = line
         self.station = station
         self.station_api = station_api
@@ -156,7 +156,6 @@ if __name__ == '__main__':
 
     station_api = get_tflstation()
     crowding_api = get_crowdingdata()
-    disruption_api = get_disruptionstatus() 
     status_api = get_statusseverity() 
 
     dictOfInstances = {}
@@ -168,7 +167,6 @@ if __name__ == '__main__':
             station=station,
             station_api=station_api,
             crowding_api=crowding_api,
-            disruption_api=disruption_api,
             status_api=status_api
         )
 

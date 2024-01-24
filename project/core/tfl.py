@@ -5,7 +5,7 @@ import time
 import random
 from urllib.error import HTTPError
 
-from core.utils import get_url
+from utils import get_url
 
 log = logging.getLogger(__name__)
 
@@ -31,17 +31,12 @@ class app_keyAppender():
                     targeturl = f'{url}?app_key={keylist[index]}'
                     data = get_url(targeturl)
                     return data
-
-                except HTTPError as err:
-                    pass
-
                 except:
                     pass
                         
             if index >= len(keylist)-1: #if all keys are exhausted, wait before trying again
-                time.sleep(random.randint(3,10)) #random seconds wait to avoid potential overlap between threads as much as possible
-
-            
+                time.sleep(random.randint(5,10)) #random seconds wait to avoid potential overlap between threads as much as possible
+     
     def appender(self, url): #obsolete
         return f'{url}?app_key=09e54f9b77ff469f9a72cdb1257f6ee3'
 
@@ -80,6 +75,26 @@ class get_tflstation(app_keyAppender):
         
         return (stationID, line) if valid == True else ('','') 
     
+class get_tflline(app_keyAppender):
+
+    arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
+
+    def __init__(self, line):
+        log.info("LOADED TFL LINE ARRIVALS API")
+        self.line = line
+        self.base_url = 'https://api.tfl.gov.uk/Line/'
+
+
+    def get_tubedata(self):
+        line = self.validate_options(option=line)
+        if len(line) == 0:
+            return "No options provided"
+        url = f"{self.base_url}{line}/Arrivals"
+        data = self.dataFetcher(url=url)
+        return data
+
+    def validate_options(self, option:str):
+        return option if option in self.arrayofoptions else ''
 
 class get_crowdingdata(app_keyAppender):
     def __init__(self):
@@ -108,60 +123,34 @@ class get_crowdingdata(app_keyAppender):
         return stationID if valid == True else ''
     
 
-class get_disruptionstatus(app_keyAppender):
-
+class get_statusseverity(app_keyAppender): 
     arrayofoptions = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
 
     def __init__(self):
-        log.info('LOADED DISRUPTION STATUS API')
-        self.base_url = 'https://api.tfl.gov.uk/Line/'
+        log.info('LOADED STATUS SEVERITY API')
+        self.request_url = 'https://api.tfl.gov.uk/Line/Mode/tube/Status'
 
-    def get_data(self, line: str):
-        line = self.validate_option(line)
-        if not line:
-            log.info('Invalid line name provided to get_disruptionstatus instance')
-            return "No valid options provided"
-        url = f"{self.base_url}{line}/Disruption"
-        data = self.dataFetcher(url=url)
-        if not data:
-            return None
-        else:
-            return data[0]['closureText']
-
-    def validate_option(self, line: str):
-        valid = True
-        if line not in self.arrayofoptions:
-            valid = False
-        return line if valid == True else ''
-    
-
-class get_statusseverity(get_disruptionstatus, app_keyAppender): #inheritance used as only difference here is what comes after the base url
-
-    def get_data(self, line:str):
-        line = self.validate_option(line)
-        if not line:
-            log.info('Invalid line name provided to get_statusseverity instance')
-            return "No valid options provided"
-        url = f"{self.base_url}{line}/Status"
+    def get_data(self):
+        url = self.request_url
         data = self.dataFetcher(url=url)
 
         '''potentially multiple different severity levels can be reported for one line, each pertaining to a different section of the line. In order to gauge
         the overall performance of a line, it is best to take an average of these severity codes if there are multiple. If not, simply take the single provided 
         value and assume it applies to the whole line'''
+        statusDict = {}
+        for entry in data:
+            currentLine = entry['id']
+            statusList = entry['lineStatuses']
+            numOfReports = len(statusList)
+            if numOfReports == 1:
+                statusDict[currentLine] = statusList[0]['statusSeverity']
+            else:
+                total = 0 
+                for each in statusList:
+                    total += each['statusSeverity']
+                statusDict[currentLine] = (total/numOfReports)
+        return statusDict
 
-        statusList = data[0]['lineStatuses'] #index 0 here because tfl returns a list of one item when you specify for a single line, rather than a list with each line
-        numOfReports = len(statusList)
-        if numOfReports == 1:
-            return statusList[0]['statusSeverity']
-        else:
-            total = 0
-            for each in statusList:
-                total += each['statusSeverity']
-            return (total/numOfReports)
-        
 if __name__ == '__main__':
-    test = app_keyAppender()
-    while True:
-        data = test.dataFetcher('https://api.tfl.gov.uk/Line/central/Disruption')
-        print (data)
-        
+    test = get_statusseverity()
+    print (test.get_data())

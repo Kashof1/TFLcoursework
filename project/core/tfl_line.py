@@ -1,4 +1,4 @@
-"""OBSOLETE - ONLY USED FOR TEMPLATING"""
+
 import logging
 from urllib.parse import quote, urlencode
 
