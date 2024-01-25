@@ -3,6 +3,7 @@ from the original version'''
 
 '''database token and cpu processes are currently configured for the raspberry pi on this file'''
 
+from multiprocessing import Manager
 import concurrent.futures
 from datetime import datetime
 import json
@@ -22,7 +23,7 @@ log = logging.getLogger(__name__)
 
 url = "http://localhost:8086"
 org = "Ghar"
-token = "zpQ87ye8X-oTBcHepculUHxKN-_Ote1JBtK8bWIjnyZQ-zQvQQYGB-Cf-tmPjg0N2nKCJi4nwuX0XRg4iiFG1A==" #superuser token - could configure token with specific perms
+token = "HSy9SVrTr0ALjgmiru2TBcBaKeIQN28broEcB4qBfPb2qNaw-zP4asKs5Pp89ShjMDRMdtV4l77PjRQ3NFTccQ==" #superuser token - could configure token with specific perms
 dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
@@ -40,41 +41,44 @@ class tfl_dataCollector:
             self.stationList = [item[1] for item in jsonf if item[0] == self.line]
 
     def arrivals_collector(self):
-        self.__currentTrains = {"TrainID" : ['Station','PredictedTime', 'ActualTime', 'Difference']} #private as this should not be monitored or changed by anything outside this method
-        while True:
-            arrivalsdata = self.line_api.get_data()
-            log.info('Called arrivals API')
-            #this section adds any new, previously untracked trains to the list
-            for each in arrivalsdata:
-                trainId = each['vehicleId']
-                if trainId not in self.__currentTrains:
-                    #formatting the predicted time nicely so that it can be operated on later
-                    formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
-                    stationName = each['stationName']
-                    self.__currentTrains[trainId] = [stationName, formattedPrediction,'','']
-            
-            #this section checks to see if any trains have arrived (i.e. are no longer in the published predictions)
-            for currentTrainid in list(self.__currentTrains):
-                if currentTrainid == 'TrainID': #skipping header
-                    pass
-                elif not any(dataLine['vehicleID'] == currentTrainid for dataLine in arrivalsdata):
-                    currentArray = self.__currentTrains[currentTrainid]
-                    predictedTime = currentArray[1]
-                    actualTime = datetime.now().replace(microsecond=0) #don't need microsecond precision, excessively redundant
-                    currentStation = currentArray[0]
+        try:
+            self.__currentTrains = {"TrainID" : ['Station','PredictedTime', 'ActualTime', 'Difference']} #private as this should not be monitored or changed by anything outside this method
+            while True:
+                arrivalsdata = self.line_api.get_data()
+                #this section adds any new, previously untracked trains to the list
+                for each in arrivalsdata:
+                    trainId = each['vehicleId']
+                    if trainId not in self.__currentTrains:
+                        #formatting the predicted time nicely so that it can be operated on later
+                        formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
+                        stationName = each['stationName']
+                        self.__currentTrains[trainId] = [stationName, formattedPrediction,'','']
+                
+                #this section checks to see if any trains have arrived (i.e. are no longer in the published predictions)
+                for currentTrainid in list(self.__currentTrains):
+                    if currentTrainid == 'TrainID': #skipping header
+                        pass
+                    elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata):
+                        currentArray = self.__currentTrains[currentTrainid]
+                        predictedTime = currentArray[1]
+                        actualTime = datetime.now().replace(microsecond=0) #don't need microsecond precision, excessively redundant
+                        currentStation = currentArray[0]
 
-                    #calculating difference in times (in seconds)
-                    #positive difference --> late train, negative difference --> early train
-                    difference = (actualTime - predictedTime).total_seconds()
-                    if difference > -600: 
-                        self.database_appender(
-                            predictedTime=predictedTime,
-                            actualTime=actualTime,
-                            difference=difference,
-                            station=currentStation
-                        )
-                        del self.__currentTrains[currentTrainid]
-            time.sleep(20)
+                        #calculating difference in times (in seconds)
+                        #positive difference --> late train, negative difference --> early train
+                        difference = (actualTime - predictedTime).total_seconds()
+                        if difference > -600: 
+                            self.database_appender(
+                                predictedTime=predictedTime,
+                                actualTime=actualTime,
+                                difference=difference,
+                                station=currentStation
+                            )
+                            del self.__currentTrains[currentTrainid]
+                time.sleep(10)
+        except Exception as e:
+            print(e)
+
 
     def database_appender(self,
             predictedTime,
@@ -83,8 +87,8 @@ class tfl_dataCollector:
             station):
         measurementName = f'{self.line}_{station.replace(" ","")}'
         crowdingValue = self.crowding_api.get_data(station=station)
-        log.info('Called crowding API')
-        statusSeverityValue = currentStatusDictionary[self.line]
+        statusSeverityDictionary = self.status_collector()
+        statusSeverityValue = statusSeverityDictionary[self.line]
 
         writeData = Point(measurement_name=measurementName) \
             .tag('predictedTime', predictedTime) \
@@ -99,13 +103,12 @@ class tfl_dataCollector:
         write_api.write(bucket='TFLBucket', org=org, record=writeData)
 
 
+    def status_collector(self):
+        status_api = get_statusseverity()
+        currentStatusDictionary = status_api.get_data()
+        del status_api #only keeping API for as long as we need it to get data
+        return currentStatusDictionary
 
-    def status_collector(self, status_api):
-        while True:
-            global currentStatusDictionary 
-            currentStatusDictionary = status_api.get_data()
-            log.info('Called status severity API')
-            time.sleep(20)
 
 
 def runStatusUpdater():
@@ -121,6 +124,7 @@ def runStatusUpdater():
                 isRunningwebhook.execute()
                 break 
 
+
 if __name__ == '__main__':
     lines = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
     crowding_api = get_crowdingdata()
@@ -128,8 +132,14 @@ if __name__ == '__main__':
     for line in lines:
         dictOfLineScrapers[line] = tfl_dataCollector(line=line, crowding_api=crowding_api)
 
-    statusCollectorInstance = tfl_dataCollector(line = 'placeholder', crowding_api = 'placeholder')
-    statusCollectorThread = threading.Thread(target = statusCollectorInstance.status_collector)
+
+    statusCollectorInstance = tfl_dataCollector(line='placeholder', crowding_api='placeholder')
+    statusCollectorThread = threading.Thread(target=statusCollectorInstance.status_collector)
+    statusCollectorThread.start()
+
+    testinstance = tfl_dataCollector(line='central', crowding_api=crowding_api)
+    #testinstance.arrivals_collector()
+
     '''status collector thread was started first as all the other threads need the current status. error would be thrown
     if no such status exists'''
     threads = []
@@ -140,6 +150,7 @@ if __name__ == '__main__':
             time.sleep(0.1) #preventing sudden burden on processor
         
         runUpdateThread = threading.Thread(target=runStatusUpdater, daemon=True)
+        runUpdateThread.start()
         #set as a daemon as we dont want this thread to stay alive when all other threads have died and wrongly inform us that program is running
         
 
