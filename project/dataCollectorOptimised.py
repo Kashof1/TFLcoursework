@@ -6,6 +6,7 @@ from the original version'''
 import concurrent.futures
 from datetime import datetime
 import json
+import logging
 import os
 import threading
 import time
@@ -16,6 +17,8 @@ from influxdb_client import Point, InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 from core.tfl import get_tflline, get_crowdingdata, get_statusseverity
+
+log = logging.getLogger(__name__)
 
 url = "http://localhost:8086"
 org = "Ghar"
@@ -40,7 +43,7 @@ class tfl_dataCollector:
         self.__currentTrains = {"TrainID" : ['Station','PredictedTime', 'ActualTime', 'Difference']} #private as this should not be monitored or changed by anything outside this method
         while True:
             arrivalsdata = self.line_api.get_data()
-
+            log.info('Called arrivals API')
             #this section adds any new, previously untracked trains to the list
             for each in arrivalsdata:
                 trainId = each['vehicleId']
@@ -80,6 +83,7 @@ class tfl_dataCollector:
             station):
         measurementName = f'{self.line}_{station.replace(" ","")}'
         crowdingValue = self.crowding_api.get_data(station=station)
+        log.info('Called crowding API')
         statusSeverityValue = currentStatusDictionary[self.line]
 
         writeData = Point(measurement_name=measurementName) \
@@ -99,9 +103,23 @@ class tfl_dataCollector:
     def status_collector(self, status_api):
         while True:
             global currentStatusDictionary 
-            currentStatusDictionary = status_api.get_statusseverity()
+            currentStatusDictionary = status_api.get_data()
+            log.info('Called status severity API')
             time.sleep(20)
 
+
+def runStatusUpdater():
+    while True:
+        try:
+            isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads'
+            isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
+            isRunningwebhook.execute()
+            time.sleep(600)
+        except Exception: #if it errors wait a few seconds and try again until it works
+            while True:
+                time.sleep(5)
+                isRunningwebhook.execute()
+                break 
 
 if __name__ == '__main__':
     lines = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
@@ -110,10 +128,19 @@ if __name__ == '__main__':
     for line in lines:
         dictOfLineScrapers[line] = tfl_dataCollector(line=line, crowding_api=crowding_api)
 
+    statusCollectorInstance = tfl_dataCollector(line = 'placeholder', crowding_api = 'placeholder')
+    statusCollectorThread = threading.Thread(target = statusCollectorInstance.status_collector)
+    '''status collector thread was started first as all the other threads need the current status. error would be thrown
+    if no such status exists'''
     threads = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=11) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=11) as executor: #using process pool as this better leverages the processing power of the RPi5
         for linescraper in dictOfLineScrapers:
             print(linescraper) #to show that all threads have loaded in terminal
             threads.append(executor.submit(dictOfLineScrapers[linescraper].arrivals_collector))
+            time.sleep(0.1) #preventing sudden burden on processor
+        
+        runUpdateThread = threading.Thread(target=runStatusUpdater, daemon=True)
+        #set as a daemon as we dont want this thread to stay alive when all other threads have died and wrongly inform us that program is running
+        
 
     
