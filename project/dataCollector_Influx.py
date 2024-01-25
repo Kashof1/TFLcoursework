@@ -132,7 +132,6 @@ class tfl_dataCollector:
                 time.sleep(5)
     
 def runStatusUpdater():
-    
     while True:
         try:
             isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads'
