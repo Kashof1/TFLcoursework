@@ -5,7 +5,7 @@ import time
 import random
 from urllib.error import HTTPError
 
-from utils import get_url
+from core.utils import get_url
 
 log = logging.getLogger(__name__)
 
@@ -85,11 +85,11 @@ class get_tflline(app_keyAppender):
         self.base_url = 'https://api.tfl.gov.uk/Line/'
 
 
-    def get_tubedata(self):
-        line = self.validate_options(option=line)
-        if len(line) == 0:
+    def get_data(self):
+        self.line = self.validate_options(option=self.line)
+        if len(self.line) == 0:
             return "No options provided"
-        url = f"{self.base_url}{line}/Arrivals"
+        url = f"{self.base_url}{self.line}/Arrivals"
         data = self.dataFetcher(url=url)
         return data
 
