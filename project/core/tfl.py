@@ -111,7 +111,8 @@ class get_crowdingdata(app_keyAppender):
             return "No valid options provided"
         url = f"{self.base_url}{stationID}/Live"
         data = self.dataFetcher(url=url)
-        return data
+        crowdingPercentage = data['percentageOfBaseline']
+        return crowdingPercentage
 
     def validate_option(self, station: str):
         valid = True
