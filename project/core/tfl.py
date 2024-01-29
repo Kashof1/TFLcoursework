@@ -16,6 +16,8 @@ secondarysub_one a: e6c88e6d39e1495cbb3f9d24d1fe8994
 secondarysub_one b: a475df8e7e204050ae339c3884401802
 secondarysub_two a: 23e0b650662d4a01b41c1ca8bfa781b2
 secondarysub_two b: b85169976bd64be7acff84bbc4940f31
+MiscUse a: 0ed20d25b4b74edbb330d875bbe783ba
+MiscUse b: 4a80bcf6764d437ea5c4fe9cf2e134de
 '''
 
 class app_keyAppender():
@@ -23,8 +25,8 @@ class app_keyAppender():
         pass
 
     def dataFetcher(self, url):
-        keylist = ['09e54f9b77ff469f9a72cdb1257f6ee3', 'eaacea99f66b4d40b7b93ce9f7744b90', 'e6c88e6d39e1495cbb3f9d24d1fe8994', 'a475df8e7e204050ae339c3884401802', '23e0b650662d4a01b41c1ca8bfa781b2', 'b85169976bd64be7acff84bbc4940f31']
-        random.shuffle(keylist)
+        keylist = ['0ed20d25b4b74edbb330d875bbe783ba', '4a80bcf6764d437ea5c4fe9cf2e134de']
+        random.shuffle(keylist) #shuffling api keys to ensure even distribution and use of all keys
         while True:
             for index in range (len(keylist)):
                 try:
