@@ -71,7 +71,7 @@ def weatherAppender(rawdata):
 
     for row in rawIterator:
         #formatting the time for each piece of raw data to hourly, to compare with weatherdata
-        timestring = (row['predictedTime'])
+        timestring = row['predictedTime']
         finaltime = datetime.fromisoformat(timestring).replace(microsecond=0, second=0, minute=0)
         finaltimeStr = finaltime.isoformat(timespec='minutes') #removing the seconds on the time to match the format of the times in the weather data
 
@@ -81,13 +81,45 @@ def weatherAppender(rawdata):
     
     weatheredData = rawdata.with_columns(
         polars.Series(name="appTemperature", values=weatherColumn["appTemperature"]),
-        polars.Series(name="precipitation", values=weatherColumn["precipitation"]))
-    
+        polars.Series(name="precipitation", values=weatherColumn["precipitation"])
+    ) 
     return weatheredData
 
 
-    #print (reader.row(by_predicate=(polars.col('time') == '2024-02-12T19:00')))
+def geoDataAppender(rawdata):
+    geoPath = os.path.join('data','stationLocRaw.csv')
+    geopl = polars.read_csv(geoPath)
+    rawIterator = rawdata.iter_rows(named=True)
+    geoColumn = {
+        "latitude" : [],
+        "longitude" : []
+    }
+
+    for row in rawIterator:
+        station = row['station']
+        station = station.replace('Underground Station', '').strip() #cleaning station names to match station names in csv file
+        station = station.replace('-Underground', '').strip() #for reasons unbenknownst to me, some statiosn have '-Underground' rather than ' Underground Station' at the end...
+        print(station)
+
+        georow = geopl.row(by_predicate=((polars.col("NAME") == station) & (polars.col("NETWORK") == "London Underground")), named=True)
+        geoColumn["latitude"].append(georow['y'])
+        geoColumn["longitude"].append(georow['x'])
+    
+    geodData = rawdata.with_columns(
+        polars.Series(name="latitude", values=geoColumn["latitude"]),
+        polars.Series(name="longitude", values=geoColumn["longitude"])
+    )
+    return geodData
+
 
 if __name__ == '__main__':
     rawdata = rawDataLoader()
+    geodata = geoDataAppender(rawdata=rawdata)
+    print (geodata)
     weatheredData = weatherAppender(rawdata=rawdata)
+
+'''
+    TO DO:
+    add some stations to the geodata file (namely battersea power station, may be others)
+    add the 'connecting stations' code
+'''
