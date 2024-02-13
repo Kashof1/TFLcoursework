@@ -12,6 +12,7 @@ jinja2 = "*"
 geojson = "*"
 discord-webhook = "*"
 influxdb-client = "*"
+polars = "*"
 
 [dev-packages]
 
