@@ -15,7 +15,6 @@ FID,OBJECTID,NAME,EASTING,NORTHING,LINES,NETWORK,Zone,x,y
 13,91,Great Portland Street,528838,182180,"Metropolitan, Circle, Hammersmith & City",London Underground,1,-0.142685711,51.52333822
 14,92,Baker Street,527955,182064,"Metropolitan, Bakerloo, Circle, Jubilee, Hammersmith & City",London Underground,1,-0.155454387,51.52249387
 15,93,Edgware Road (Circle Line),527220,181697,Circle,London Underground,1,-0.166170742,51.51936413
-16,94,Paddington,526704,181198,"Hammersmith & City, District, Circle, Bakerloo",London Underground,1,-0.173789485,51.51499491
 17,95,Bayswater,525843,180823,"District, Circle",London Underground,1,-0.186322701,51.51181507
 18,96,High Street Kensington,525578,179494,"District, Circle",London Underground,1,-0.190607248,51.49993492
 19,97,Gloucester Road,526183,178846,"District, Piccadilly, Circle",London Underground,1,-0.182135121,51.49397763
@@ -72,7 +71,7 @@ FID,OBJECTID,NAME,EASTING,NORTHING,LINES,NETWORK,Zone,x,y
 70,103,Putney Bridge,524519,175887,District,London Underground,2,-0.207131382,51.46774182
 71,104,Parsons Green,524985,176647,District,London Underground,2,-0.200166803,51.47447238
 72,105,White City,523308,180748,Central,London Underground,2,-0.222866489,51.51170695
-73,106,Shepherd's Bush,523720,179884,Central,London Underground,2,-0.217238899,51.50384346
+73,106,Shepherd's Bush (Central),523720,179884,Central,London Underground,2,-0.217238899,51.50384346
 74,107,Holland Park,524626,180217,Central,London Underground,2,-0.204062863,51.50664438
 75,111,Brixton,531052,175429,Victoria,London Underground,2,-0.113288835,51.46215131
 76,113,Vauxhall,530337,177973,Victoria,London Underground,2,-0.122646146,51.48518446
