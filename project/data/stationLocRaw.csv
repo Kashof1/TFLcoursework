@@ -430,7 +430,7 @@ FID,OBJECTID,NAME,EASTING,NORTHING,LINES,NETWORK,Zone,x,y
 429,126,Epping,546209,201538,Central,London Underground,6,0.115641374,51.69306818
 430,27,Elm Park,552542,185716,District,London Underground,6,0.200311564,51.54920911
 431,28,Hornchurch,553944,186240,District,London Underground,6,0.220754707,51.55353835
-432,29,Heathrow Terminals 1-2-3,507586,175840,Piccadilly,London Underground,6,-0.450857772,51.47079421
+432,29,Heathrow Terminals 2 & 3,507586,175840,Piccadilly,London Underground,6,-0.450857772,51.47079421
 433,30,Upminster Bridge,555088,186770,District,London Underground,6,0.237476635,51.55798569
 434,75,West Ruislip,508379,186796,Central,London Underground,6,-0.436073394,51.56913097
 435,199,Upminster,556146,186868,District,London Underground,6,0.252767235,51.55857711
