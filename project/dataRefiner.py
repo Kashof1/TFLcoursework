@@ -40,7 +40,7 @@ def rawDataLoader():
     for measurementName in measurementNames:
         measurementCount += 1
         query = f'from(bucket: "TFLBucket")\
-    |> range(start: -2d)\
+    |> range(start: -400d)\
     |> filter(fn: (r) => r["_measurement"] == "{measurementName}")\
     |> mean()\
     |> group()'
@@ -55,7 +55,7 @@ def rawDataLoader():
                 plcolumns["crowding"].append(record.values['crowding'])
                 plcolumns["statusSeverity"].append(record.values['statusSeverity'])
                 plcolumns["timeDiff"].append(record.values['_value'])
-        print(f'measurement {measurementCount} done')
+        print(f'measurement {measurementCount} raw data loaded')
 
     outputpl = polars.DataFrame(plcolumns)
     return outputpl
@@ -78,6 +78,7 @@ def weatherAppender(rawdata):
         weatherRow = weatherpl.row(by_predicate=(polars.col("time") == finaltimeStr), named=True)
         weatherColumn["appTemperature"].append(weatherRow['apparent_temperature'])
         weatherColumn["precipitation"].append(weatherRow['precipitation'])
+        print(finaltimeStr)
     
     weatheredData = rawdata.with_columns(
         polars.Series(name="appTemperature", values=weatherColumn["appTemperature"]),
@@ -115,11 +116,10 @@ def geoDataAppender(rawdata):
 if __name__ == '__main__':
     rawdata = rawDataLoader()
     geodata = geoDataAppender(rawdata=rawdata)
-    print (geodata)
-    weatheredData = weatherAppender(rawdata=rawdata)
+    finalData = weatherAppender(rawdata=geodata)
+    savepath = os.path.join('data','trainingdataWeatherGeo.json')
+    finalData.write_json(file=savepath, pretty=True, row_oriented=True)
+    
+    print (finalData)
 
-'''
-    TO DO:
-    add some stations to the geodata file (namely battersea power station, may be others)
-    add the 'connecting stations' code
-'''
+
