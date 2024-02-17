@@ -113,13 +113,100 @@ def geoDataAppender(rawdata):
     return geodData
 
 
+'''station line encoding may not be used, instead using one-hot/multi-hot encoding when normalising the data before feeding it to the ML model'''
+def station_lineEncoder(rawdata): #this must occur last, as the other functions rely on the station name and do not work with station number
+    stationPath = os.path.join('data','stations.json')
+    #assigning each line a number, between 1 and 11
+    lineDict = {
+        "bakerloo" : 1,
+        "central" : 2,
+        "circle" : 3,
+        "district" : 4,
+        "hammersmith-city" : 5,
+        "jubilee" : 6,
+        "metropolitan" : 7,
+        "northern" : 8,
+        "piccadilly" : 9,
+        "victoria" : 10,
+        "waterloo-city" : 11
+    }
+    #assigning each station a number, between 1 and 272
+    with open (stationPath, 'r') as file:
+        stationDict = json.load(file)
+        for number, name in enumerate(stationDict):
+            stationDict[name] = number+1
+
+    appendCols = {
+        "stationNumber" : [],
+        "lineNumber" : []
+    }
+    rawIterator = rawdata.iter_rows(named=True)
+
+    for row in rawIterator:
+        station = row['station']
+        line = row['line']
+        stationN = stationDict[station]
+        lineN = lineDict[line]
+        appendCols["stationNumber"].append(stationN)
+        appendCols["lineNumber"].append(lineN)
+        print(f'replacing {station} with {stationN} and {line} with {lineN}')
+    
+    finalData = rawdata.with_columns(
+        polars.Series(name="stationNumber", values=appendCols["stationNumber"]),
+        polars.Series(name="lineNumber", values=appendCols["lineNumber"])
+    )
+    finalData.drop_in_place("station") #removing the named stations at this point
+    return finalData
+
+def dateTimeConvertor(rawdata):
+    appendCols = {
+        "day" : [],
+        "time" : []
+    }
+    rawIterator = rawdata.iter_rows(named=True)
+
+    for row in rawIterator:
+        oldTime = datetime.strptime(row["predictedTime"], f'%Y-%m-%d %H:%M:%S') 
+        time = oldTime.time().replace(microsecond=0).strftime("%H:%M:%S")
+        day = oldTime.isoweekday() #isoweekday would return 1 for Monday and 7 for Sunday
+        appendCols["day"].append(day)
+        appendCols["time"].append(time)
+        print(f'time is {time} and day is {day}')
+    
+    finalData = rawdata.with_columns(
+        polars.Series(name="day", values=appendCols["day"]),
+        polars.Series(name="time", values=appendCols["time"])
+    )
+
+    finalData.drop_in_place("predictedTime")
+    return finalData
+
+
 if __name__ == '__main__':
     rawdata = rawDataLoader()
     geodata = geoDataAppender(rawdata=rawdata)
-    finalData = weatherAppender(rawdata=geodata)
-    savepath = os.path.join('data','trainingdataWeatherGeo.json')
-    finalData.write_json(file=savepath, pretty=True, row_oriented=True)
-    
-    print (finalData)
+    weatherData = weatherAppender(rawdata=geodata)
+    finalData = dateTimeConvertor(rawdata=weatherData)
+
+    trainPath = os.path.join('data','trainingdataFinal.json')
+    testPath = os.path.join('data', 'testingdataFinal.json')
+    allPath = os.path.join('data', 'testingdataAll.json')
+    finalData.write_json(file=allPath, pretty=True, row_oriented=True)
+
+    finalData = finalData.sample(fraction=1, shuffle=True) #randomly shuffling the dataset
+    dataSize = len(finalData)
+    trainSize = int(0.8*dataSize) #80% of data used for training
+    testSize = dataSize - trainSize
+    trainData, testData = finalData.head(trainSize), finalData.tail(testSize)
+
+    trainData.write_json(file=trainPath, pretty=True, row_oriented=True)
+    testData.write_json(file=testPath, pretty=True, row_oriented=True)
+    print('TRAINING DATA')
+    print (trainData)
+    print ('*' * 30)
+    print('TESTING DATA')
+    print (testData)
+
+
 
 
