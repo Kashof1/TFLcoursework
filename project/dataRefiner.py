@@ -188,9 +188,9 @@ if __name__ == '__main__':
     weatherData = weatherAppender(rawdata=geodata)
     finalData = dateTimeConvertor(rawdata=weatherData)
 
-    trainPath = os.path.join('data','trainingdataFinal.json')
-    testPath = os.path.join('data', 'testingdataFinal.json')
-    allPath = os.path.join('data', 'testingdataAll.json')
+    trainPath = os.path.join('data', 'mlData', 'trainingdataFinal.json')
+    testPath = os.path.join('data', 'mlData', 'testingdataFinal.json')
+    allPath = os.path.join('data', 'mlData', 'testingdataAll.json')
     finalData.write_json(file=allPath, pretty=True, row_oriented=True)
 
     finalData = finalData.sample(fraction=1, shuffle=True) #randomly shuffling the dataset
