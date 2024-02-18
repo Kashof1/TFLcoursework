@@ -13,6 +13,7 @@ geojson = "*"
 discord-webhook = "*"
 influxdb-client = "*"
 polars = "*"
+pandas = "*"
 
 [dev-packages]
 
