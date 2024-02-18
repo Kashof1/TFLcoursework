@@ -1,4 +1,7 @@
-'''database token and cpu processes configured for raspberry pi on this file'''
+'''THIS VERSION OF THE DATA COLLECTOR HAS NOW BEEN MADE OBSOLETE BY THE INFLUX VERSION (PREFERRED)
+- keeping this version of the data collector as proof of development and for potential mongo use in other projects
+- this code is intended to be in the project folder
+'''
 
 import concurrent.futures
 from datetime import datetime, timedelta
@@ -9,21 +12,15 @@ import time
 import sys
 from discord_webhook import DiscordWebhook #webhooks used for monitoring of data collection to ensure it is still running.
 
+import pymongo
 
-from influxdb_client import Point, InfluxDBClient
-from influxdb_client.client.write_api import SYNCHRONOUS
+from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus, get_statusseverity
 
-from core.tfl import get_tflstation, get_crowdingdata, get_statusseverity
-
-url = "http://localhost:8086"
-org = "Ghar"
-token = "zpQ87ye8X-oTBcHepculUHxKN-_Ote1JBtK8bWIjnyZQ-zQvQQYGB-Cf-tmPjg0N2nKCJi4nwuX0XRg4iiFG1A==" #superuser token - could configure token with specific perms
-dbclient = InfluxDBClient(url=url, org=org, token=token)
-write_api = dbclient.write_api(write_options=SYNCHRONOUS)
-query_api = dbclient.query_api()
+dbclient = pymongo.MongoClient("mongodb://localhost:27017/")
+db = dbclient['TFLDatabase']
 
 class tfl_dataCollector:
-    def __init__(self, line, station, station_api, crowding_api, status_api) -> None:
+    def __init__(self, line, station, station_api, crowding_api, disruption_api, status_api) -> None:
         self.line = line
         self.station = station
         self.station_api = station_api
@@ -32,7 +29,15 @@ class tfl_dataCollector:
         self.status_api = status_api
 
     def collector(self):
-        measurementName = f"{self.line}_{self.station.replace(' ', '')}" #replacing the spaces with blank space for ease of referencing
+        colName = f"{self.line}_{self.station.replace(' ', '+')}_col" #replacing the spaces with + for ease of referencing
+        existingCols = db.list_collection_names()
+        if colName not in existingCols:
+            currentCol = db.create_collection(colName, timeseries={
+                    'timeField': "time",
+                    'metaField': "meta",
+                    'granularity': "seconds"
+            })
+        currentCol = db[colName] 
 
         currentTrains = {
             "TrainID" : ['PredictedTime', 'ActualTime', 'Difference']
@@ -88,42 +93,27 @@ class tfl_dataCollector:
                         #positive difference --> late train, negative difference --> early train
                         difference = (actualTime - predictedTime).total_seconds()
                         if difference > -600: #trains arriving more than 10 minutes early are outliers, likely cancelled trains
-                            writeData = Point(measurement_name=measurementName) \
-                                .tag('predictedTime', predictedTime) \
-                                .tag('actualTime', actualTime) \
-                                .tag('line', self.line) \
-                                .tag('station', self.station) \
-                                .tag('crowding', crowdingdata['percentageOfBaseline']) \
-                                .tag('statusSeverity', statusSeverityValue) \
-                                .field('timeDiff', difference) \
-                                .time(time=actualTime)
-                            
-                            #query to check if the data we are about to add already exists (uniquely identified by the predicted time)
-                            #this avoids repeats caused by unreliability of TFL API
-                            '''query = f'from(bucket:"TFLBucket")\
-                            |> range(start: -1h)\
-                            |> filter(fn:(r) => r["_measurement"]== "{measurementName}")\
-                            |> filter(fn:(r) => r["predictedTime"]== "{predictedTime}")\ '
-                            
-                            try:
-                                queryReturn = query_api.query(org=org, query=query)
-                            except Exception as e:
-                                print (e)
+                            metavals = { #could investigate more metadata to be used
+                                'predictedTime' : predictedTime, 
+                                'actualTime' : actualTime,
+                                'line' : self.line,
+                                'station' : self.station.replace(' ','+'),
+                                'crowding' : crowdingdata['percentageOfBaseline'], #value for crowding
+                                'statusSeverity' : statusSeverityValue
+                                }
 
-                            if (len(queryReturn)): 
-                                write_api.write(bucket='TFLBucket', org=org, record=writeData)'''
-                            
-                            write_api.write(bucket='TFLBucket', org=org, record=writeData)
-
+                            #only adding this new prediction to the database if it isn't already there (uniquely identified using predictedTime)
+                            if not currentCol.count_documents({'meta.predictedTime' : predictedTime}): 
+                                currentCol.insert_one({ 
+                                    'meta' : metavals,
+                                    'time' : actualTime,
+                                    'timediff' : difference
+                                })
+                                print(threading.active_count())
                         del currentTrains[currentTrainid] #removing the train that has reached from database of currently tracked trains
 
-                        print ('appended') 
-                        #print to terminal every time a train is added to database. used for monitoring/debugging
-                        #(ensuring program is not producing lower than expected output)
 
-
-
-                time.sleep(10)
+                time.sleep(3)
             
             except:
                 webhookMessage = f'The error is: "{sys.exc_info()}", and the current thread number is {threading.active_count()}'
@@ -132,10 +122,10 @@ class tfl_dataCollector:
                 time.sleep(5)
     
 def runStatusUpdater():
+    isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads'
+    isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
     while True:
         try:
-            isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads'
-            isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
             isRunningwebhook.execute()
             time.sleep(600)
         except Exception as e: #if it errors wait a few seconds and try again until it works
@@ -155,6 +145,7 @@ if __name__ == '__main__':
 
     station_api = get_tflstation()
     crowding_api = get_crowdingdata()
+    disruption_api = get_disruptionstatus() 
     status_api = get_statusseverity() 
 
     dictOfInstances = {}
@@ -166,6 +157,7 @@ if __name__ == '__main__':
             station=station,
             station_api=station_api,
             crowding_api=crowding_api,
+            disruption_api=disruption_api,
             status_api=status_api
         )
 
@@ -174,14 +166,11 @@ if __name__ == '__main__':
 
     threading.excepthook = hook
     threads = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=384) as executor:
-        count = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=384) as executor:
         for instance in range (384):
-            print (count)
-            count+=1
             threads.append(executor.submit(dictOfInstances[instance].collector))
-            time.sleep(0.1) #ensuring no sudden burden on processor
-
+            #time.sleep(0.1) --> redundant on the server as it is already so slow, but needed on faster devices such as laptop
+        
         statusthread = threading.Thread(target=runStatusUpdater, daemon=True) #set as daemon thread so that it terminates if all other processes die
         #... we don't want this to be the only thread running, causing us to get the false message that the program is still operational.
         statusthread.start()
@@ -196,3 +185,6 @@ if __name__ == '__main__':
     criticalMessage = 'CRITICAL ERROR: All threads are closed'
     criticalWebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=criticalMessage)
     criticalWebhook.execute()
+
+
+
