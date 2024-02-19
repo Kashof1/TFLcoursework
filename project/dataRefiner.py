@@ -41,7 +41,7 @@ def rawDataLoader():
     for measurementName in measurementNames:
         measurementCount += 1
         query = f'from(bucket: "TFLBucket")\
-    |> range(start: -8d)\
+    |> range(start: -400d)\
     |> filter(fn: (r) => r["_measurement"] == "{measurementName}")\
     |> mean()\
     |> group()'
@@ -203,24 +203,28 @@ if __name__ == '__main__':
     finalData = dateTimeConvertor(rawdata=weatherData)
     finalData.drop_in_place('measurementName') #this data won't be used to train the model and is therefore dropped here
 
-    trainPath = os.path.join('data', 'mlData', 'trainingdataFinal.json')
-    testPath = os.path.join('data', 'mlData', 'testingdataFinal.json')
-    allPath = os.path.join('data', 'mlData', 'allData.json')
-    finalData.write_json(file=allPath, pretty=True, row_oriented=True)
+    trainPath = os.path.join('data', 'mlData', 'trainingdata.json')
+    testPath = os.path.join('data', 'mlData', 'testingdata.json')
+    valPath = os.path.join('data', 'mlData', 'validatingdata.json')
 
     finalData = finalData.sample(fraction=1, shuffle=True) #randomly shuffling the dataset
     dataSize = len(finalData)
     trainSize = int(0.8*dataSize) #80% of data used for training
-    testSize = dataSize - trainSize
-    trainData, testData = finalData.head(trainSize), finalData.tail(testSize)
+    testandvalSize = dataSize - trainSize
+    trainData, testandvalData = finalData.head(trainSize), finalData.tail(testandvalSize) #20% goes to testing and validating, which is split then in half for 80:10:10 train:test:validate
+    testData, valData = testandvalData.head(int(0.5*testandvalSize)), testandvalData.tail(int(0.5*testandvalSize))
 
     trainData.write_json(file=trainPath, pretty=True, row_oriented=True)
     testData.write_json(file=testPath, pretty=True, row_oriented=True)
+    valData.write_json(file=valPath, pretty=True, row_oriented=True)
     print('TRAINING DATA')
     print (trainData)
     print ('*' * 30)
     print('TESTING DATA')
     print (testData)
+    print ('*' * 30)
+    print('VALIDATING DATA')
+    print(valData)
 
 
 
