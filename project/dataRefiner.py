@@ -1,6 +1,7 @@
 import os
 import time
 import csv
+import re
 import json
 import polars
 from datetime import datetime
@@ -40,7 +41,7 @@ def rawDataLoader():
     for measurementName in measurementNames:
         measurementCount += 1
         query = f'from(bucket: "TFLBucket")\
-    |> range(start: -400d)\
+    |> range(start: -8d)\
     |> filter(fn: (r) => r["_measurement"] == "{measurementName}")\
     |> mean()\
     |> group()'
@@ -167,11 +168,24 @@ def dateTimeConvertor(rawdata):
 
     for row in rawIterator:
         oldTime = datetime.strptime(row["predictedTime"], f'%Y-%m-%d %H:%M:%S') 
-        time = oldTime.time().replace(microsecond=0).strftime("%H:%M:%S")
+
+        '''grouping the time into half hour intervals'''
+        strtime = oldTime.time().replace(microsecond=0).strftime("%H:%M:%S")
+
+        #getting the hour and minute values using regex
+        minuteSearch = re.search(pattern=r':\d+:', string=strtime)
+        hourSearch = re.search(pattern=r'\d+:', string=strtime)
+        minuteInt = int(minuteSearch.group().strip(':'))
+        hourStr = hourSearch.group().strip(':')
+        interval = 30 #currently groups into 30-minute groups. adjust this by changing this number (if needed)
+        minStr = str((minuteInt//interval) * interval).ljust(2, '0') #numbers between 0-30 return '00', 30-59 return '30', hence grouping into 30m intervals
+        finalTime = f'{hourStr}:{minStr}:00'
+        
+
         day = oldTime.isoweekday() #isoweekday would return 1 for Monday and 7 for Sunday
         appendCols["day"].append(day)
-        appendCols["time"].append(time)
-        print(f'time is {time} and day is {day}')
+        appendCols["time"].append(finalTime)
+        print(f'time is {finalTime} and day is {day}')
     
     finalData = rawdata.with_columns(
         polars.Series(name="day", values=appendCols["day"]),
