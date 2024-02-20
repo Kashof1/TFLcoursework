@@ -3,7 +3,9 @@ import os
 import tensorflow as tf
 import keras
 from keras import layers 
-import pydot
+from keras import activations
+from datetime import datetime
+import tensorboard
 
 
 
@@ -37,8 +39,6 @@ def normalisationGetter(featurename, dataset):
 def categoricalEncodingGetter(featurename, dataset, datatype = 'string'):
     #cast all types, regardless of string or int, to string (just in case integer indices are being used), as well as isolating the feature we want to use
     processedDS = dataset.map(lambda x, y: x[featurename])
-    print(featurename)
-
 
     #creating a layer that 'knows' all of the possible 'words' that occur in the dataset and assigns them a number
     #alternating between string and integer depending on input data
@@ -61,17 +61,13 @@ def categoricalEncodingGetter(featurename, dataset, datatype = 'string'):
 def geographicalEncodingGetter(dataset):
     latitudeset = dataset.map(lambda x, y: x['latitude'])
     longitudeset = dataset.map(lambda x, y: x['longitude'])
-    print('1')
     lat_bucket_layer, long_bucket_layer = layers.Discretization(num_bins=8, output_mode="int"), layers.Discretization(num_bins=8, output_mode="int") #8 divisions lengthwise and 8 divisions widthwise of coordinates
-    print('2')
     #generating buckets of even sizes BASED ON THE DISTRIBUTION OF THE DATA
     lat_bucket_layer.adapt(latitudeset)
-    print('3')
     long_bucket_layer.adapt(longitudeset)
-    print('4')
 
     crossedlayer = layers.HashedCrossing(num_bins=64, output_mode='one_hot') #essentially splitting the map of London into 64 pieces, into which coordinates are grouped
-    print('5')
+
     return lambda latitude, longitude: crossedlayer((lat_bucket_layer(latitude), long_bucket_layer(longitude)))
     
 
@@ -115,10 +111,6 @@ if __name__ == '__main__':
         raw_input_layers.append(cat_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
 
-        [(x,y)] = training_dataset.take(1)
-        x = catLayer(x[header])
-        print(x)
-        print(type(x))
     
     for header in int_categorical_headers:
         cat_input_column_raw = keras.Input(shape=(1,), name=header, dtype='int64')
@@ -138,9 +130,13 @@ if __name__ == '__main__':
 
 
     input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
-    x = keras.layers.Dense(272, activation='relu')(input_formatting_layer)
-    x = keras.layers.Dense(100, activation='relu')(x)
+    x = keras.layers.Dense(384, activation=activations.relu)(input_formatting_layer)
+    x = keras.layers.Dense(100, activation=activations.relu)(x)
+    x = keras.layers.Dense(50, activation=activations.relu)(x)
     output_layer = keras.layers.Dense(1)(x)
+
+    log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     model = keras.Model(raw_input_layers, output_layer)
     model.compile(optimizer='adam',
@@ -149,6 +145,9 @@ if __name__ == '__main__':
                   )
     
     print(model.summary())
-    model.fit(training_dataset, epochs=10, validation_data=validating_dataset)
+    model.fit(training_dataset,
+             epochs=10, 
+             validation_data=validating_dataset,
+             callbacks=[tensorboard_callback])
     loss, accuracy = model.evaluate(testing_dataset)
     print("Accuracy", accuracy)
