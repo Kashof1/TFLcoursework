@@ -34,13 +34,20 @@ def normalisationGetter(featurename, dataset):
     return normaliser
 
 #can test this by running it twice with every line and comparing both inputs, and by checking that each one-hot encoded column only occurs once
-def categoricalEncodingGetter(featurename, dataset):
+def categoricalEncodingGetter(featurename, dataset, datatype = 'string'):
     #cast all types, regardless of string or int, to string (just in case integer indices are being used), as well as isolating the feature we want to use
-    dataset = dataset.map(lambda x, y: tf.strings.as_string(x[featurename]))
+    processedDS = dataset.map(lambda x, y: x[featurename])
+    print(featurename)
+
 
     #creating a layer that 'knows' all of the possible 'words' that occur in the dataset and assigns them a number
-    intIndexLayer = layers.StringLookup()
-    intIndexLayer.adapt(data=dataset)
+    #alternating between string and integer depending on input data
+    if datatype == 'string':
+        intIndexLayer = layers.StringLookup()
+    elif datatype == 'int':
+        intIndexLayer = layers.IntegerLookup()
+
+    intIndexLayer.adapt(data=processedDS)
     number_of_columns = intIndexLayer.vocabulary_size()
 
     #layer that one-hot encodes categorical indexes passed to it
@@ -54,15 +61,17 @@ def categoricalEncodingGetter(featurename, dataset):
 def geographicalEncodingGetter(dataset):
     latitudeset = dataset.map(lambda x, y: x['latitude'])
     longitudeset = dataset.map(lambda x, y: x['longitude'])
-
-    lat_bucket_layer, long_bucket_layer = layers.Discretization(num_bins=8), layers.Discretization(num_bins=8) #8 divisions lengthwise and 8 divisions widthwise of coordinates
-    
+    print('1')
+    lat_bucket_layer, long_bucket_layer = layers.Discretization(num_bins=8, output_mode="int"), layers.Discretization(num_bins=8, output_mode="int") #8 divisions lengthwise and 8 divisions widthwise of coordinates
+    print('2')
     #generating buckets of even sizes BASED ON THE DISTRIBUTION OF THE DATA
     lat_bucket_layer.adapt(latitudeset)
+    print('3')
     long_bucket_layer.adapt(longitudeset)
+    print('4')
 
     crossedlayer = layers.HashedCrossing(num_bins=64, output_mode='one_hot') #essentially splitting the map of London into 64 pieces, into which coordinates are grouped
-
+    print('5')
     return lambda latitude, longitude: crossedlayer((lat_bucket_layer(latitude), long_bucket_layer(longitude)))
     
 
@@ -89,14 +98,15 @@ if __name__ == '__main__':
     testing_dataset = pandas_to_dataset(pdframe=testdf)
     validating_dataset = pandas_to_dataset(pdframe=valdf)
 
-
-
+    
     for header in numeric_headers:
         numeric_input_column_raw = keras.Input(shape=(1,), name=header)
         normLayer = normalisationGetter(featurename=header, dataset=training_dataset)
         encoded_input_column = normLayer(numeric_input_column_raw)
         raw_input_layers.append(numeric_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
+
+
     
     for header in categorical_headers:
         cat_input_column_raw = keras.Input(shape=(1,), name=header, dtype='string')
@@ -104,13 +114,19 @@ if __name__ == '__main__':
         encoded_input_column = catLayer(cat_input_column_raw)
         raw_input_layers.append(cat_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
+
+        [(x,y)] = training_dataset.take(1)
+        x = catLayer(x[header])
+        print(x)
+        print(type(x))
     
     for header in int_categorical_headers:
         cat_input_column_raw = keras.Input(shape=(1,), name=header, dtype='int64')
-        catLayer = categoricalEncodingGetter(featurename=header, dataset=training_dataset)
+        catLayer = categoricalEncodingGetter(featurename=header, dataset=training_dataset, datatype='int')
         encoded_input_column = catLayer(cat_input_column_raw)
         raw_input_layers.append(cat_input_column_raw)  
         encoded_input_layers.append(encoded_input_column)
+
     
     lat_input_column_raw = keras.Input(shape=(1,), name='latitude', dtype='float64') 
     long_input_column_raw = keras.Input(shape=(1,), name='longitude', dtype='float64')
@@ -126,7 +142,7 @@ if __name__ == '__main__':
     x = keras.layers.Dense(100, activation='relu')(x)
     output_layer = keras.layers.Dense(1)(x)
 
-    model = keras.Model(input_formatting_layer, output_layer)
+    model = keras.Model(raw_input_layers, output_layer)
     model.compile(optimizer='adam',
                   loss = keras.losses.mean_squared_error,
                   metrics=['accuracy']
@@ -134,3 +150,5 @@ if __name__ == '__main__':
     
     print(model.summary())
     model.fit(training_dataset, epochs=10, validation_data=validating_dataset)
+    loss, accuracy = model.evaluate(testing_dataset)
+    print("Accuracy", accuracy)
