@@ -181,8 +181,9 @@ def dateTimeConvertor(rawdata):
         minStr = str((minuteInt//interval) * interval).ljust(2, '0') #numbers between 0-30 return '00', 30-59 return '30', hence grouping into 30m intervals
         finalTime = f'{hourStr}:{minStr}:00'
         
-
-        day = oldTime.isoweekday() #isoweekday would return 1 for Monday and 7 for Sunday
+        '''day being typecasted to string so it matches all other categorical data in the tensorflow pipeline (makes
+        stuff easier/less dependency on tf processing this way)'''
+        day = str(oldTime.isoweekday()) #isoweekday would return 1 for Monday and 7 for Sunday
         appendCols["day"].append(day)
         appendCols["time"].append(finalTime)
         print(f'time is {finalTime} and day is {day}')
