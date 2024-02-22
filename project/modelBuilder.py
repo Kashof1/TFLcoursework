@@ -5,11 +5,12 @@ import keras
 from keras import layers 
 from keras import activations
 from datetime import datetime
+import keras_tuner as kt
 import tensorboard
 
 
 
-def pandas_to_dataset(pdframe, batch_size=32) -> tf.data.Dataset:
+def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
     labels = pdframe.pop('timeDiff')
     pdframe = {key: value.values[:,tf.newaxis] for key, value in pdframe.items()}#[:,tf.newaxis] adds the dimensionality
     """  
@@ -30,7 +31,7 @@ def pandas_to_dataset(pdframe, batch_size=32) -> tf.data.Dataset:
     return dataset
 
 def normalisationGetter(featurename, dataset):
-    normaliser = layers.Normalization(axis=None) #axis=None ensures scalar normalisation (i.e. every last entered number is normalised by the same params regardless of input shape)
+    normaliser = layers.Normalization() #axis=None ensures scalar normalisation (i.e. every last entered number is normalised by the same params regardless of input shape)
     isolatedFeatures = dataset.map(lambda features, label: features[featurename]) #mapping each item in the dataset to just the value for the featurename passed in, and removing label from dataset
     normaliser.adapt(isolatedFeatures) #have the normaliser 'learn' the mean and s.d. based on the given data
     return normaliser
@@ -94,14 +95,14 @@ if __name__ == '__main__':
     testing_dataset = pandas_to_dataset(pdframe=testdf)
     validating_dataset = pandas_to_dataset(pdframe=valdf)
 
-    
+      
     for header in numeric_headers:
         numeric_input_column_raw = keras.Input(shape=(1,), name=header)
         normLayer = normalisationGetter(featurename=header, dataset=training_dataset)
         encoded_input_column = normLayer(numeric_input_column_raw)
         raw_input_layers.append(numeric_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
-
+    
 
     
     for header in categorical_headers:
@@ -110,7 +111,7 @@ if __name__ == '__main__':
         encoded_input_column = catLayer(cat_input_column_raw)
         raw_input_layers.append(cat_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
-
+    
     
     for header in int_categorical_headers:
         cat_input_column_raw = keras.Input(shape=(1,), name=header, dtype='int64')
@@ -127,27 +128,44 @@ if __name__ == '__main__':
     raw_input_layers.append(lat_input_column_raw)
     raw_input_layers.append(long_input_column_raw)
     encoded_input_layers.append(encoded_geo_column)
+    
 
-
-    input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
-    x = keras.layers.Dense(384, activation=activations.relu)(input_formatting_layer)
-    x = keras.layers.Dense(100, activation=activations.relu)(x)
-    x = keras.layers.Dense(50, activation=activations.relu)(x)
-    output_layer = keras.layers.Dense(1)(x)
+    #MODEL TRAINING AND CONFIG STARTS HERE
 
     log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0)
+
+    
+    input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
+    x = keras.layers.Dense(300, activation=layers.PReLU())(input_formatting_layer)
+    x = keras.layers.Dense(50, activation=activations.linear)(x)
+    output_layer = keras.layers.Dense(1)(x)
 
     model = keras.Model(raw_input_layers, output_layer)
+
     model.compile(optimizer='adam',
-                  loss = keras.losses.mean_squared_error,
-                  metrics=['accuracy']
-                  )
-    
+                loss = keras.losses.mean_squared_error,
+                metrics=keras.metrics.RootMeanSquaredError()
+                )
+
+
     print(model.summary())
     model.fit(training_dataset,
              epochs=10, 
              validation_data=validating_dataset,
              callbacks=[tensorboard_callback])
     loss, accuracy = model.evaluate(testing_dataset)
-    print("Accuracy", accuracy)
+    print("Loss", loss)
+
+
+    model.save('testmodel.keras')
+    newmodel = keras.models.load_model('testmodel.keras')
+    [(x,y)] = testing_dataset.take(1) # type: ignore
+    predictions = newmodel.predict(x) # type: ignore 
+
+    y = list(y)
+    predictions = list(predictions)
+    print (predictions[0], y[0])
+    print (predictions[10], y[10])
+    print (predictions[50], y[50])
+    
