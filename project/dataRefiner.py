@@ -175,8 +175,8 @@ def dateTimeConvertor(rawdata):
         #getting the hour and minute values using regex
         minuteSearch = re.search(pattern=r':\d+:', string=strtime)
         hourSearch = re.search(pattern=r'\d+:', string=strtime)
-        minuteInt = int(minuteSearch.group().strip(':'))
-        hourStr = hourSearch.group().strip(':')
+        minuteInt = int(minuteSearch.group().strip(':')) # type: ignore
+        hourStr = hourSearch.group().strip(':') #type: ignore
         interval = 30 #currently groups into 30-minute groups. adjust this by changing this number (if needed)
         minStr = str((minuteInt//interval) * interval).ljust(2, '0') #numbers between 0-30 return '00', 30-59 return '30', hence grouping into 30m intervals
         finalTime = f'{hourStr}:{minStr}:00'
