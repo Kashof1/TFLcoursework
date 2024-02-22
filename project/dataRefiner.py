@@ -208,7 +208,7 @@ if __name__ == '__main__':
     testPath = os.path.join('data', 'mlData', 'testingdata.json')
     valPath = os.path.join('data', 'mlData', 'validatingdata.json')
 
-    finalData = finalData.sample(fraction=1, shuffle=True) #randomly shuffling the dataset
+    finalData = finalData.sample(fraction=1, shuffle=True, seed=80626) #randomly shuffling the dataset
     dataSize = len(finalData)
     trainSize = int(0.8*dataSize) #80% of data used for training
     testandvalSize = dataSize - trainSize

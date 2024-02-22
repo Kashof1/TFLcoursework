@@ -137,13 +137,14 @@ if __name__ == '__main__':
 
     
     input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
-    x = keras.layers.Dense(300, activation=layers.PReLU())(input_formatting_layer)
+    x = keras.layers.Dense(400, activation=layers.PReLU())(input_formatting_layer)
+    x = keras.layers.Dense(300, activation=layers.PReLU())(x)
     x = keras.layers.Dense(50, activation=activations.linear)(x)
     output_layer = keras.layers.Dense(1)(x)
 
     model = keras.Model(raw_input_layers, output_layer)
 
-    model.compile(optimizer='adam',
+    model.compile(optimizer=keras.optimizers.Adam(),
                 loss = keras.losses.mean_squared_error,
                 metrics=keras.metrics.RootMeanSquaredError()
                 )
