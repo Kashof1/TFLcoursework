@@ -28,6 +28,9 @@ dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
 
+global recentAppend
+recentAppend = ''
+
 class tfl_dataCollector:
     def __init__(self, line, crowding_api):
         self.crowding_api = crowding_api #passing in the crowding api so that all line scrapers use the same one (saving resources)
@@ -47,18 +50,18 @@ class tfl_dataCollector:
                 arrivalsdata = self.line_api.get_data()
                 #this section adds any new, previously untracked trains to the list
                 for each in arrivalsdata:
-                    trainId = each['vehicleId']
+                    trainId = each['vehicleId'] # type: ignore
                     if trainId not in self.__currentTrains:
                         #formatting the predicted time nicely so that it can be operated on later
-                        formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ')
-                        stationName = each['stationName']
-                        self.__currentTrains[trainId] = [stationName, formattedPrediction,'','']
+                        formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ') # type: ignore 
+                        stationName = each['stationName'] # type: ignore
+                        self.__currentTrains[trainId] = [stationName, formattedPrediction,'',''] # type: ignore
                 
                 #this section checks to see if any trains have arrived (i.e. are no longer in the published predictions)
                 for currentTrainid in list(self.__currentTrains):
                     if currentTrainid == 'TrainID': #skipping header
                         pass
-                    elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata):
+                    elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata): # type: ignore
                         currentArray = self.__currentTrains[currentTrainid]
                         predictedTime = currentArray[1]
                         actualTime = datetime.now().replace(microsecond=0) #don't need microsecond precision, excessively redundant
@@ -66,7 +69,7 @@ class tfl_dataCollector:
 
                         #calculating difference in times (in seconds)
                         #positive difference --> late train, negative difference --> early train
-                        difference = (actualTime - predictedTime).total_seconds()
+                        difference = (actualTime - predictedTime).total_seconds() # type: ignore
                         if difference > -600: 
                             self.database_appender(
                                 predictedTime=predictedTime,
@@ -74,6 +77,11 @@ class tfl_dataCollector:
                                 difference=difference,
                                 station=currentStation
                             )
+
+                            global recentAppend
+                            print(f'Appended data for {currentStation} at time {datetime.now()}')
+                            recentAppend = f'{currentStation} on {self.line} at {datetime.now()}'
+
                             del self.__currentTrains[currentTrainid]
                 time.sleep(10)
         except Exception as e:
@@ -114,7 +122,8 @@ class tfl_dataCollector:
 def runStatusUpdater():
     while True:
         try:
-            isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads'
+            global recentAppend
+            isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads. {recentAppend}'
             isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
             isRunningwebhook.execute()
             time.sleep(600)
