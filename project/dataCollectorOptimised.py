@@ -29,7 +29,7 @@ write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
 
 global recentAppend
-recentAppend = ''
+recentAppend = 'No recent appends at the moment'
 
 class tfl_dataCollector:
     def __init__(self, line, crowding_api):
@@ -79,8 +79,8 @@ class tfl_dataCollector:
                             )
 
                             global recentAppend
-                            print(f'Appended data for {currentStation} at time {datetime.now()}')
-                            recentAppend = f'{currentStation} on {self.line} at {datetime.now()}'
+                            recentAppend = f'Appended data for {currentStation} on {self.line} at {datetime.now()}'
+                            print(recentAppend)
 
                             del self.__currentTrains[currentTrainid]
                 time.sleep(10)
