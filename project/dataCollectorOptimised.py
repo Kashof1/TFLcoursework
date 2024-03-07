@@ -28,7 +28,6 @@ dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
 
-global recentAppend
 recentAppend = 'No recent appends at the moment'
 
 class tfl_dataCollector:
@@ -122,7 +121,6 @@ class tfl_dataCollector:
 def runStatusUpdater():
     while True:
         try:
-            global recentAppend
             isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads. {recentAppend}'
             isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
             isRunningwebhook.execute()
