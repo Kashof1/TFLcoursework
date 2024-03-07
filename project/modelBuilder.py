@@ -144,8 +144,8 @@ if __name__ == '__main__':
 
     model = keras.Model(raw_input_layers, output_layer)
 
-    model.compile(optimizer=keras.optimizers.Adam(),
-                loss = keras.losses.mean_squared_error,
+    model.compile(optimizer=keras.optimizers.legacy.Adam(),
+                loss = keras.losses.mean_absolute_percentage_error,
                 metrics=keras.metrics.RootMeanSquaredError()
                 )
 
