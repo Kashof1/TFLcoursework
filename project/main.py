@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from core.tfl import get_tflstation, get_crowdingdata, get_disruptionstatus
+from core.tfl import get_tflstation, get_crowdingdata, get_statusseverity
 
 logs_file = Path(Path().resolve(), "log.txt")
 logs_file.touch(exist_ok=True)
@@ -28,23 +28,33 @@ templates = Jinja2Templates(directory='templates')
 
 station_train_api = get_tflstation()
 station_crowd_api = get_crowdingdata()
-line_disruption_api = get_disruptionstatus()
+line_disruption_api = get_statusseverity()
 
-@app.get('/', response_class=HTMLResponse)
+'''@app.get('/', response_class=HTMLResponse)
 def root(request : Request):
     log.info("Loaded root page")
     return templates.TemplateResponse(
         'index.html',
         {'request' : request,
          'data': ['home page']}
-    )
+    )'''
+
+@app.get('/', response_class=HTMLResponse)
+async def mappage(request: Request, station: str = ''):
+    if station == '':
+        log.info('hh')
+        return templates.TemplateResponse(
+            'index.html',
+            {'request' : request}
+        )
+    else:
+        log.info('h')
+        return templates.TemplateResponse(
+            'index.html',
+            {'request' : request}
+        )
 
 
-'''@app.get('/{line}')
-async def getarrivalsdata(line):
-    log.info(f"Loaded {line} arrivals data")
-    output = tfl_api.get_tubedata(options=line)
-    return {"data":output}'''
 
 @app.get('/{line}/Arrivals/{station}')
 async def getstationarrivalsdata(line, station):

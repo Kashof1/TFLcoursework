@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page_content %}
-<head>
+<head onload="testfun()">
   <style>
      #map { 
       height: 80vh; 
@@ -16,7 +16,77 @@
 
 
 <div id="map"></div>
-<script src="static/leaflettest.js"></script>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasRightLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    ...
+  </div>
+</div>
+
+<script>
+    function testfun(){
+        console.log('test')
+    }
+</script>
+
+
+<script type="module">
+    //NEED TO IMPORT THE STATION DATA (if possible, otherwise copy paste in again lmao)
+    import data from './static/stationsgeo.json' with { type:'json'};
+    var stationdata = data.features; //extracting the list of datapoints from the imported data, which is a featurecollection
+
+    var map = L.map('map').setView([51.505, -0.09], 13);
+    
+    const precreatedOffcanvas = bootstrap.Offcanvas.getInstance('#offcanvasRight') //getting the offcanvas defined in html above to play with it
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+
+    //var stationsLayer = L.geoJSON().addTo(map)
+
+    var markers = {};
+    const Off = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
+    const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
+    console.log(offcanvas)
+
+    for (var i in stationdata){
+        var current = stationdata[i];
+        markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name}); 
+        // the {} is the leaflet options field and we are forcing an id here because theres not really anywhere else to put it. 
+        //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
+        
+        //markers[i]._icon.id = current.properties.name;
+        function onMarkerPress(e) {
+            console.log(e.target.options.id);
+            var newurl = `?station=${e.target.options.id}`;
+            window.history.replaceState(null, '', newurl);
+            offcanvas.toggle();
+        };
+
+        markers[i].on('click', onMarkerPress);
+        markers[i].addTo(map);
+
+    }
+
+
+//function in the loop that assigns an event to each marker where it uses JS History API (pushstate) with optional arguments, using the ?, that are passed in to dynamically generate the offcanvas item
+</script>
+
+<script>
+  function testfun(){
+    console.log('ran')
+    const offcanvasElementList = document.querySelectorAll('.offcanvas');
+    const offcanvasList = [...offcanvasElementList].map(offcanvasEl => new bootstrap.Offcanvas(offcanvasEl));
+    offcanvasElementList.show();
+  }
+</script>
 
 {% endblock %}
 
