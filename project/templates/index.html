@@ -17,9 +17,9 @@
 
 <div id="map"></div>
 
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasRightLabel">
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasRightLabel">
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+    <h5 class="offcanvas-title" id="offcanvasRightLabel">Information for <span id="stationName">  </span> </h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body">
@@ -27,11 +27,7 @@
   </div>
 </div>
 
-<script>
-    function testfun(){
-        console.log('test')
-    }
-</script>
+
 
 
 <script type="module">
@@ -54,7 +50,6 @@
     var markers = {};
     const Off = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
     const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
-    console.log(offcanvas)
 
     for (var i in stationdata){
         var current = stationdata[i];
@@ -63,12 +58,26 @@
         //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
         
         //markers[i]._icon.id = current.properties.name;
-        function onMarkerPress(e) {
+        function onMarkerP(e) {
             console.log(e.target.options.id);
             var newurl = `?station=${e.target.options.id}`;
-            window.history.replaceState(null, '', newurl);
+            window.history.pushState(null, '', newurl);
             offcanvas.toggle();
         };
+
+        function onMarkerPress(e) {
+          var selectedStation = e.target.options.id
+
+          fetch("/", {
+            method : "POST",
+            headers : {"Content-Type" : "application/json"},
+            body : JSON.stringify( {"station" : selectedStation} ),
+          }).then((response) => document.getElementById("stationName").innerHTML = response)
+          .then((response) => console.log(response));
+
+          offcanvas.toggle();
+        }
+
 
         markers[i].on('click', onMarkerPress);
         markers[i].addTo(map);
@@ -79,14 +88,7 @@
 //function in the loop that assigns an event to each marker where it uses JS History API (pushstate) with optional arguments, using the ?, that are passed in to dynamically generate the offcanvas item
 </script>
 
-<script>
-  function testfun(){
-    console.log('ran')
-    const offcanvasElementList = document.querySelectorAll('.offcanvas');
-    const offcanvasList = [...offcanvasElementList].map(offcanvasEl => new bootstrap.Offcanvas(offcanvasEl));
-    offcanvasElementList.show();
-  }
-</script>
+
 
 {% endblock %}
 

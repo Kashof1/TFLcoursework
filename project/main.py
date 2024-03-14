@@ -7,6 +7,7 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from core.tfl import get_tflstation, get_crowdingdata, get_statusseverity
 
@@ -30,6 +31,9 @@ station_train_api = get_tflstation()
 station_crowd_api = get_crowdingdata()
 line_disruption_api = get_statusseverity()
 
+class MarkerResponse(BaseModel):
+    station: str
+
 '''@app.get('/', response_class=HTMLResponse)
 def root(request : Request):
     log.info("Loaded root page")
@@ -40,20 +44,23 @@ def root(request : Request):
     )'''
 
 @app.get('/', response_class=HTMLResponse)
-async def mappage(request: Request, station: str = ''):
-    if station == '':
-        log.info('hh')
-        return templates.TemplateResponse(
-            'index.html',
-            {'request' : request}
-        )
-    else:
-        log.info('h')
-        return templates.TemplateResponse(
-            'index.html',
-            {'request' : request}
-        )
+def mappage(request: Request):
+    log.info('Root page loaded')
+    return templates.TemplateResponse(
+        'index.html',
+        {'request' : request}
+    )
 
+
+
+@app.post('/', response_class=HTMLResponse)
+def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
+    data = markerresponse.station
+    
+    log.info(f'Server received marker click data for {data}')
+
+    return data
+    
 
 
 @app.get('/{line}/Arrivals/{station}')
