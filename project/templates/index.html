@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page_content %}
-<head onload="testfun()">
+<head>
   <style>
      #map { 
       height: 80vh; 
@@ -17,27 +17,29 @@
 
 <div id="map"></div>
 
-<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasRightLabel">
+<div class="offcanvas offcanvas-start w-50" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasRightLabel">
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasRightLabel">Information for <span id="stationName">  </span> </h5>
+    <h5 class="offcanvas-title" id="offcanvasTitle">Information for <span id="stationName"> <!-- station name --> </span> </h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body">
     ...
   </div>
 </div>
+{% endblock %}
 
 
-
+{% block scripts %}
 
 <script type="module">
-    //NEED TO IMPORT THE STATION DATA (if possible, otherwise copy paste in again lmao)
     import data from './static/stationsgeo.json' with { type:'json'};
-    var stationdata = data.features; //extracting the list of datapoints from the imported data, which is a featurecollection
+    let stationdata = data.features; //extracting the list of datapoints from the imported data, which is a featurecollection
 
-    var map = L.map('map').setView([51.505, -0.09], 13);
-    
     const precreatedOffcanvas = bootstrap.Offcanvas.getInstance('#offcanvasRight') //getting the offcanvas defined in html above to play with it
+    const Off = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
+    const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
+
+    let map = L.map('map').setView([51.54, -0.13], 11);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -47,33 +49,33 @@
 
     //var stationsLayer = L.geoJSON().addTo(map)
 
-    var markers = {};
-    const Off = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
-    const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
+    let markers = {};
 
-    for (var i in stationdata){
-        var current = stationdata[i];
+    for (let i in stationdata){
+        let current = stationdata[i];
         markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name}); 
         // the {} is the leaflet options field and we are forcing an id here because theres not really anywhere else to put it. 
         //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
         
         //markers[i]._icon.id = current.properties.name;
-        function onMarkerP(e) {
-            console.log(e.target.options.id);
-            var newurl = `?station=${e.target.options.id}`;
-            window.history.pushState(null, '', newurl);
-            offcanvas.toggle();
-        };
 
-        function onMarkerPress(e) {
-          var selectedStation = e.target.options.id
+        async function onMarkerPress(e) {
+          let selectedStation = e.target.options.id
 
-          fetch("/", {
+          let responseVal = await fetch("/", {
             method : "POST",
             headers : {"Content-Type" : "application/json"},
-            body : JSON.stringify( {"station" : selectedStation} ),
-          }).then((response) => document.getElementById("stationName").innerHTML = response)
-          .then((response) => console.log(response));
+            body : JSON.stringify({"station" : selectedStation}),
+          }
+          ).then((response) => response.json())
+          //.then((response) => responseVal = response)
+          //.then((response) => document.getElementById("stationName").innerHTML = response);
+          //above two then blocks now redundant - instead using async/await to assign the response value to a variable
+          // then use the variable ahead to dynamically change content of the html
+          
+          let stationTitle = document.getElementById("stationName");
+          stationTitle.innerHTML = responseVal['station'];
+          //stationTitle.style.color = '#DE251B'
 
           offcanvas.toggle();
         }
@@ -88,10 +90,7 @@
 //function in the loop that assigns an event to each marker where it uses JS History API (pushstate) with optional arguments, using the ?, that are passed in to dynamically generate the offcanvas item
 </script>
 
-
-
 {% endblock %}
 
-{% block scripts %}
 
-{% endblock %}
+

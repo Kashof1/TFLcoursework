@@ -1,10 +1,12 @@
 import logging
 import os
+import json
 from typing import Optional
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response, JSONResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -55,11 +57,14 @@ def mappage(request: Request):
 
 @app.post('/', response_class=HTMLResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
-    data = markerresponse.station
-    
+    returnedStation = markerresponse.station
+    data = {
+        "station": returnedStation
+        }
     log.info(f'Server received marker click data for {data}')
 
-    return data
+    encoded = jsonable_encoder(data)
+    return JSONResponse(content = encoded)
     
 
 
