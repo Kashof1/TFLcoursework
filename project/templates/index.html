@@ -17,13 +17,15 @@
 
 <div id="map"></div>
 
-<div class="offcanvas offcanvas-start w-50" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasRightLabel">
+<div class="offcanvas offcanvas-start w-50" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasPanel">
   <div class="offcanvas-header">
     <h5 class="offcanvas-title" id="offcanvasTitle">Information for <span id="stationName"> <!-- station name --> </span> </h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-  <div class="offcanvas-body">
-    ...
+  <div class="offcanvas-body" id="mainBody" aria-labelledby="mainOffcanvasBody">
+    <div class="accordion accordion-flush" id="mainAccordionBody">
+      <!-- js generates all of the drop downs in here -->
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -35,7 +37,6 @@
     import data from './static/stationsgeo.json' with { type:'json'};
     let stationdata = data.features; //extracting the list of datapoints from the imported data, which is a featurecollection
 
-    const precreatedOffcanvas = bootstrap.Offcanvas.getInstance('#offcanvasRight') //getting the offcanvas defined in html above to play with it
     const Off = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
     const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
 
@@ -47,8 +48,6 @@
     }).addTo(map);
 
 
-    //var stationsLayer = L.geoJSON().addTo(map)
-
     let markers = {};
 
     for (let i in stationdata){
@@ -56,12 +55,10 @@
         markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name}); 
         // the {} is the leaflet options field and we are forcing an id here because theres not really anywhere else to put it. 
         //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
-        
-        //markers[i]._icon.id = current.properties.name;
+      
 
         async function onMarkerPress(e) {
-          let selectedStation = e.target.options.id
-
+          let selectedStation = e.target.options.id;
           let responseVal = await fetch("/", {
             method : "POST",
             headers : {"Content-Type" : "application/json"},
@@ -78,11 +75,51 @@
           //stationTitle.style.color = '#DE251B'
 
           offcanvas.toggle();
-        }
-
+        };
 
         markers[i].on('click', onMarkerPress);
         markers[i].addTo(map);
+    };
+    console.log('hii');
+
+    let accordionBody = document.getElementById("mainAccordionBody")
+
+    for(let i=0; i<6; i++){
+      let item = document.createElement("div");
+      item.classList.add('accordion-item');
+
+      let header = document.createElement("h2");
+      header.classList.add("accordion-header");
+
+      let button = document.createElement("button");
+      button.className = "accordion-button collapsed";
+      button.setAttribute('data-bs-toggle','collapse');
+      button.setAttribute("type", "button");
+      button.setAttribute("data-bs-target", `#collapse${i}`);
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-controls", `collapse${i}`);
+
+      button.innerHTML = `Accordion Item #${i}`;
+      button.style.color = '#DE251B'
+
+      let collapse = document.createElement("div");
+      collapse.className = "accordion-collapse collapse";      
+      collapse.setAttribute("id", `collapse${i}`);
+      collapse.setAttribute("data-bs-parent", "#mainAccordionBody");
+    
+      let body = document.createElement("div");
+      body.className = "accordion-body";
+      body.innerHTML = `this is the text for the ${i}-numbered accordion dropdown`;
+
+      header.appendChild(button);
+      collapse.appendChild(body);
+
+      item.appendChild(header);
+      item.appendChild(collapse);
+      accordionBody.appendChild(item)
+      
+
+      //accordionBody.appendChild(item.appendChild(header.appendChild(button)));
 
     }
 
