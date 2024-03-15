@@ -32,13 +32,38 @@
 {% block scripts %}
 
 <script type="module">
+    //custom function to sleep for some time
+    function sleep(timeinms){
+      return new Promise(resolve => setTimeout(resolve, timeinms));
+    };
+    
+    let lineColours = {
+      'Bakerloo' : 'RGB(166,90,42)',
+      'Central' : 'RGB(225,37,27)',
+      'Circle' : 'RGB(255,205,0)',
+      'District' : 'RGB(0,121,52)',
+      'Hammersmith-city' : 'RGB(236,155,173)',
+      'Jubilee' : 'RGB(123,134,140)',
+      'Metropolitan' : 'RGB(135,15,84)',
+      'Northern' : 'RGB(0,0,0)',
+      'Piccadilly' : 'RGB(0,15,159)',
+      'Victoria' : 'RGB(0,160,223)',
+      'Waterloo-city' : 'RGB(107,205,178)'
+    }
+
     import data from './static/stationsgeo.json' with { type:'json'};
     let stationdata = data.features; //extracting the list of datapoints from the imported data, which is a featurecollection
 
-    const Off = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
-    const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
+    const offcanvas = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
+    //const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
+    
+    //listener event that resets the map view every time the offcanvas panel is closed
+    const off = document.querySelector('#offcanvasPanel')
+    off.addEventListener('hide.bs.offcanvas', event => {
+      sleep(100).then(() => map.flyTo([51.54, -0.13], 10.9));
+    })
 
-    let map = L.map('map').setView([51.54, -0.13], 11);
+    let map = L.map('map').setView([51.54, -0.13], 10.9);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -60,6 +85,7 @@
         async function onMarkerPress(e) {
           //below block gets the selected station id from the marker and then posts to server
           //receives response to json format and assigns to responseVal
+          map.flyTo(e.latlng, 13)
           let selectedStation = e.target.options.id;
           let responseVal = await fetch("/", {
             method : "POST",
@@ -113,7 +139,7 @@
             button.setAttribute("aria-controls", `collapse${line}`);
 
             button.innerHTML = `${line} line`;
-            button.style.color = '#DE251B'
+            button.style.color = lineColours[line]
 
             let collapse = document.createElement("div");
             collapse.className = "accordion-collapse collapse";      
@@ -135,9 +161,9 @@
             //accordionBody.appendChild(item.appendChild(header.appendChild(button)));
 
           }
-
-
-          offcanvas.toggle();
+          
+          //to allow time for map to get to marker
+          sleep(350).then(() => offcanvas.toggle());
         };
 
         markers[i].on('click', onMarkerPress);
