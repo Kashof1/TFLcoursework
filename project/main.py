@@ -61,7 +61,7 @@ def get_markerStationResponse(request: Request, markerresponse : MarkerResponse)
     stationName = f'{returnedStation.title()} Underground Station'
     with open (os.path.join('data', 'stationLineCombos.json'), 'r') as f:
         stationdata = json.load(f)
-    linesServed = [each[0].capitalize() for each in stationdata if each[1] == stationName]
+    linesServed = [each[0].capitalize() for each in stationdata if each[1] == stationName] #error for hyphenated stations
 
     data = {
         "station": stationName,
