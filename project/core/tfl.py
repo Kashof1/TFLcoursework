@@ -64,6 +64,9 @@ class get_tflstation(app_keyAppender):
         data = self.dataFetcher(url=url)
         return data
 
+    def get_next_unique_trains(self):
+        #this function will get the next train for each unique 'destination' in the API call
+        pass
 
     def validate_option(self, line: str, station: str):
         valid = True
@@ -153,6 +156,7 @@ class get_statusseverity(app_keyAppender):
                     total += each['statusSeverity']
                 statusDict[currentLine] = (total/numOfReports)
         return statusDict
+
 
 if __name__ == '__main__':
     test = get_statusseverity()
