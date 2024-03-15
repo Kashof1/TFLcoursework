@@ -19,7 +19,7 @@
 
 <div class="offcanvas offcanvas-start w-50" tabindex="-1" id="offcanvasPanel" aria-labelledby="offcanvasPanel">
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasTitle">Information for <span id="stationName"> <!-- station name --> </span> </h5>
+    <h5 class="offcanvas-title" id="offcanvasTitle">Information for <strong id="stationName"> <!-- station name --> </strong> </h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body" id="mainBody" aria-labelledby="mainOffcanvasBody">
@@ -50,7 +50,9 @@
 
     for (let i in stationdata){
         let current = stationdata[i];
-        markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name}).bindTooltip(current.properties.name); 
+        
+        markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name})
+        .bindTooltip(current.properties.name, {direction : 'top', opacity : 0.75}); 
         // the {} is the leaflet options field and we are forcing an id here because theres not really anywhere else to put it. 
         //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
       
