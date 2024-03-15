@@ -58,13 +58,14 @@ def mappage(request: Request):
 @app.post('/', response_class=HTMLResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
     returnedStation = markerresponse.station
-    stationName = f'{returnedStation.title()} Underground Station'
+    log.info(markerresponse.station)
+    stationName = f'{returnedStation} Underground Station'
     with open (os.path.join('data', 'stationLineCombos.json'), 'r') as f:
         stationdata = json.load(f)
     linesServed = [each[0].capitalize() for each in stationdata if each[1] == stationName] #error for hyphenated stations
 
     data = {
-        "station": stationName,
+        "station": stationName.title(),
         "linesServed" : linesServed
         }
     log.info(f'Server received marker click data for {data}')
