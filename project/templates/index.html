@@ -23,9 +23,7 @@
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body" id="mainBody" aria-labelledby="mainOffcanvasBody">
-    <div class="accordion accordion-flush" id="mainAccordionBody">
-      <!-- js generates all of the drop downs in here -->
-    </div>
+
   </div>
 </div>
 {% endblock %}
@@ -52,12 +50,14 @@
 
     for (let i in stationdata){
         let current = stationdata[i];
-        markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name}); 
+        markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name}).bindTooltip(current.properties.name); 
         // the {} is the leaflet options field and we are forcing an id here because theres not really anywhere else to put it. 
         //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
       
 
         async function onMarkerPress(e) {
+          //below block gets the selected station id from the marker and then posts to server
+          //receives response to json format and assigns to responseVal
           let selectedStation = e.target.options.id;
           let responseVal = await fetch("/", {
             method : "POST",
@@ -68,14 +68,32 @@
           //.then((response) => responseVal = response)
           //.then((response) => document.getElementById("stationName").innerHTML = response);
           //above two then blocks now redundant - instead using async/await to assign the response value to a variable
-          // then use the variable ahead to dynamically change content of the html
           
+          //below block builds the title of the offcanvas
           let stationTitle = document.getElementById("stationName");
           stationTitle.innerHTML = responseVal['station'];
           //stationTitle.style.color = '#DE251B'
 
-          let linesServed = responseVal['linesServed']
-          let accordionBody = document.getElementById("mainAccordionBody");
+          //below block extracts lines from response
+          let linesServed = [];
+          linesServed = responseVal['linesServed'];
+          
+          //getting offcanvas and deleting accordion
+          //this only works because offcanvas has a single child (THE MAIN ACCORDION BODY)
+          //if more items added to offcanvas, use while loop with similar syntax to remove all
+          let offcanvasBody = document.getElementById("mainBody");
+          if (offcanvasBody.firstChild){
+            offcanvasBody.removeChild(offcanvasBody.firstChild)
+          }
+
+          //getting offcanvas body and appending accordion item to it
+          let accordionBody = document.createElement("div");
+          accordionBody.setAttribute("id", "mainAccordionBody");
+          accordionBody.className = "accordion accordion-flush";
+
+          offcanvasBody.appendChild(accordionBody);
+
+          //let accordionBody = document.getElementById("mainAccordionBody");
 
           for(let line of linesServed){
             let item = document.createElement("div");
