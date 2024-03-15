@@ -74,6 +74,49 @@
           stationTitle.innerHTML = responseVal['station'];
           //stationTitle.style.color = '#DE251B'
 
+          let linesServed = responseVal['linesServed']
+          let accordionBody = document.getElementById("mainAccordionBody");
+
+          for(let line of linesServed){
+            let item = document.createElement("div");
+            item.classList.add('accordion-item');
+
+            let header = document.createElement("h2");
+            header.classList.add("accordion-header");
+
+            let button = document.createElement("button");
+            button.className = "accordion-button collapsed";
+            button.setAttribute('data-bs-toggle','collapse');
+            button.setAttribute("type", "button");
+            button.setAttribute("data-bs-target", `#collapse${line}`);
+            button.setAttribute("aria-expanded", "false");
+            button.setAttribute("aria-controls", `collapse${line}`);
+
+            button.innerHTML = `${line} line`;
+            button.style.color = '#DE251B'
+
+            let collapse = document.createElement("div");
+            collapse.className = "accordion-collapse collapse";      
+            collapse.setAttribute("id", `collapse${line}`);
+            collapse.setAttribute("data-bs-parent", "#mainAccordionBody");
+
+            let body = document.createElement("div");
+            body.className = "accordion-body";
+            body.innerHTML = `this is the text for the ${line} line`;
+
+            header.appendChild(button);
+            collapse.appendChild(body);
+
+            item.appendChild(header);
+            item.appendChild(collapse);
+            accordionBody.appendChild(item)
+            
+
+            //accordionBody.appendChild(item.appendChild(header.appendChild(button)));
+
+          }
+
+
           offcanvas.toggle();
         };
 
@@ -82,46 +125,7 @@
     };
     console.log('hii');
 
-    let accordionBody = document.getElementById("mainAccordionBody")
 
-    for(let i=0; i<6; i++){
-      let item = document.createElement("div");
-      item.classList.add('accordion-item');
-
-      let header = document.createElement("h2");
-      header.classList.add("accordion-header");
-
-      let button = document.createElement("button");
-      button.className = "accordion-button collapsed";
-      button.setAttribute('data-bs-toggle','collapse');
-      button.setAttribute("type", "button");
-      button.setAttribute("data-bs-target", `#collapse${i}`);
-      button.setAttribute("aria-expanded", "false");
-      button.setAttribute("aria-controls", `collapse${i}`);
-
-      button.innerHTML = `Accordion Item #${i}`;
-      button.style.color = '#DE251B'
-
-      let collapse = document.createElement("div");
-      collapse.className = "accordion-collapse collapse";      
-      collapse.setAttribute("id", `collapse${i}`);
-      collapse.setAttribute("data-bs-parent", "#mainAccordionBody");
-    
-      let body = document.createElement("div");
-      body.className = "accordion-body";
-      body.innerHTML = `this is the text for the ${i}-numbered accordion dropdown`;
-
-      header.appendChild(button);
-      collapse.appendChild(body);
-
-      item.appendChild(header);
-      item.appendChild(collapse);
-      accordionBody.appendChild(item)
-      
-
-      //accordionBody.appendChild(item.appendChild(header.appendChild(button)));
-
-    }
 
 
 //function in the loop that assigns an event to each marker where it uses JS History API (pushstate) with optional arguments, using the ?, that are passed in to dynamically generate the offcanvas item
