@@ -37,7 +37,7 @@
       return new Promise(resolve => setTimeout(resolve, timeinms));
     };
     
-    let lineColours = {
+    const lineColours = {
       'Bakerloo' : 'RGB(166,90,42)',
       'Central' : 'RGB(225,37,27)',
       'Circle' : 'RGB(255,205,0)',
@@ -51,7 +51,7 @@
       'Waterloo-city' : 'RGB(107,205,178)'
     }
 
-    let data = await fetch("/sendStationData", {
+    const data = await fetch("/sendStationData", {
       method: 'POST',
       headers : {'Content-Type' : 'application/json'},
     })
@@ -78,9 +78,17 @@
 
     for (let i in data){
         let current = data[i];
+        let lines = current.properties.linesServed;
+
+        let tooltipMessage = '<strong>${current.properties.name}</strong>';
+        let imageRefBase = 'images/'
+        for (let line of lines){
+          console.log(line)
+          tooltipMessage = tooltipMessage + `<img src='${imageRefBase}${line}Logo.png' />`
+        }
         
         markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name})
-        .bindTooltip(current.properties.name, {direction : 'top', opacity : 0.75}); 
+        .bindTooltip(tooltipMessage, {direction : 'top', opacity : 0.75}); 
         // the {} is the leaflet options field and we are forcing an id here because theres not really anywhere else to put it. 
         //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
       
