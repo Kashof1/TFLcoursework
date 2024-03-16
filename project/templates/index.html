@@ -80,7 +80,7 @@
         let current = data[i];
         let lines = current.properties.linesServed;
 
-        let tooltipMessage = `<strong>${current.properties.name}</strong>`;
+        let tooltipMessage = `<strong>${current.properties.name}</strong><br>`;
         let imageRefBase = 'static/images/'
         for (let line of lines){
           tooltipMessage = tooltipMessage + `<img src='${imageRefBase}${line}Logo.png' width='30'/>`
@@ -88,8 +88,6 @@
         
         markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name})
         .bindTooltip(tooltipMessage, {direction : 'top', opacity : 0.9}); 
-        // the {} is the leaflet options field and we are forcing an id here because theres not really anywhere else to put it. 
-        //we can then access the marker id later using e.target.options.id, when an event is triggered on that marker
       
 
         async function onMarkerPress(e) {
