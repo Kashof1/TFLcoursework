@@ -51,7 +51,12 @@
       'Waterloo-city' : 'RGB(107,205,178)'
     }
 
-    import data from './static/stationsgeo.json' with { type:'json'};
+    let data = await fetch("/sendStationData", {
+      method: 'POST',
+      headers : {'Content-Type' : 'application/json'},
+    })
+    
+    //import data from './static/stationsgeo.json' with { type:'json'};
     let stationdata = data.features; //extracting the list of datapoints from the imported data, which is a featurecollection
 
     const offcanvas = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
