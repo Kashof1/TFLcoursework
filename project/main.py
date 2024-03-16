@@ -54,8 +54,7 @@ def mappage(request: Request):
     )
 
 
-
-@app.post('/', response_class=HTMLResponse)
+@app.post('/', response_class=JSONResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
     returnedStation = markerresponse.station
     log.info(markerresponse.station)
@@ -74,13 +73,31 @@ def get_markerStationResponse(request: Request, markerresponse : MarkerResponse)
     return JSONResponse(content = encoded)
     
 
+@app.post('/sendStationData', response_class=JSONResponse)
+def return_stationGeoData(request: Request):
+    with open(os.path.join('project', 'data','stationsgeo.json'),'r') as file:
+        data = json.load(file)
+        
+    newdata = []
+    for each in data:
+        lines = each['properties']['linesServed']
+        lines = lines.replace('Hammersmith & City', 'hammersmith-city')
+        lines = lines.replace('Waterloo & City', 'waterloo-city')
+        linearray = list(map(str.lower, lines.split(', ')))
+        each['properties']['linesServed'] = linearray
+        newdata.append(each)
 
+    encoded = jsonable_encoder(newdata)
+    return JSONResponse(content = encoded)
+
+    
 @app.get('/{line}/Arrivals/{station}')
 async def getstationarrivalsdata(line, station):
     station = station.replace('+',' ')
     log.info(f"Loaded {line} arrivals page for {station}")
     output = station_train_api.get_data(line, station)
     return {"data" : output}
+
 
 @app.get('/Crowding/{stationName}/Live')
 async def getstationcrowdingdata(stationName):
@@ -90,11 +107,13 @@ async def getstationcrowdingdata(stationName):
     print (output['percentageOfBaseline'])
     return {"data" : output}
 
+
 @app.get('/Line/{line}/Disruption')
 async def getarrivalsdata(line):
     log.info(f"Loaded {line} disruptions data page")
     output = line_disruption_api.get_data(line=line)
     return {"data":output}
+
 
 @app.get('/testpage')
 async def testpage(request: Request):
