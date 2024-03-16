@@ -84,7 +84,7 @@
         let imageRefBase = 'static/images/'
         for (let line of lines){
           console.log(line)
-          tooltipMessage = tooltipMessage + `<img src='${imageRefBase}${line}Logo.png' />`
+          tooltipMessage = tooltipMessage + `<img src='${imageRefBase}${line}Logo.png' width='30'/>`
         }
         
         markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name})
