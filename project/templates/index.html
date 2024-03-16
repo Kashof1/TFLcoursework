@@ -55,9 +55,7 @@
       method: 'POST',
       headers : {'Content-Type' : 'application/json'},
     })
-    
-    //import data from './static/stationsgeo.json' with { type:'json'};
-    let stationdata = data.features; //extracting the list of datapoints from the imported data, which is a featurecollection
+    .then((response) => response.json());
 
     const offcanvas = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
     //const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
@@ -78,8 +76,8 @@
 
     let markers = {};
 
-    for (let i in stationdata){
-        let current = stationdata[i];
+    for (let i in data){
+        let current = data[i];
         
         markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name})
         .bindTooltip(current.properties.name, {direction : 'top', opacity : 0.75}); 
