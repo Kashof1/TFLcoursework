@@ -75,6 +75,7 @@ def get_markerStationResponse(request: Request, markerresponse : MarkerResponse)
 
 @app.post('/sendStationData', response_class=JSONResponse)
 def return_stationGeoData(request: Request):
+    log.info('Station data requested by front end')
     with open(os.path.join('data','stationsgeo.json'),'r') as file:
         data = json.load(file)
         
