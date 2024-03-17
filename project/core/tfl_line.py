@@ -1,3 +1,4 @@
+'''obsolete'''
 
 import logging
 from urllib.parse import quote, urlencode

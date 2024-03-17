@@ -101,16 +101,11 @@
             body : JSON.stringify({"station" : selectedStation}),
           }
           ).then((response) => response.json())
-          //.then((response) => responseVal = response)
-          //.then((response) => document.getElementById("stationName").innerHTML = response);
-          //above two then blocks now redundant - instead using async/await to assign the response value to a variable
           
           //below block builds the title of the offcanvas
           let stationTitle = document.getElementById("stationName");
           stationTitle.innerHTML = responseVal['station'];
-          //stationTitle.style.color = '#DE251B'
 
-          //below block extracts lines from response
           let linesServed = [];
           linesServed = responseVal['linesServed'];
           
@@ -129,7 +124,6 @@
 
           offcanvasBody.appendChild(accordionBody);
 
-          //let accordionBody = document.getElementById("mainAccordionBody");
 
           for(let line of linesServed){
             let item = document.createElement("div");
@@ -164,9 +158,6 @@
             item.appendChild(header);
             item.appendChild(collapse);
             accordionBody.appendChild(item)
-            
-
-            //accordionBody.appendChild(item.appendChild(header.appendChild(button)));
 
           }
           
@@ -179,10 +170,6 @@
     };
     console.log('hii');
 
-
-
-
-//function in the loop that assigns an event to each marker where it uses JS History API (pushstate) with optional arguments, using the ?, that are passed in to dynamically generate the offcanvas item
 </script>
 
 {% endblock %}
