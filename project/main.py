@@ -55,7 +55,6 @@ def mappage(request: Request):
 @app.post('/', response_class=JSONResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
     returnedStation = markerresponse.station
-    log.info(markerresponse.station)
     stationName = f'{returnedStation} Underground Station'
     with open (os.path.join('data', 'stationLineCombos.json'), 'r') as f:
         stationdata = json.load(f)
@@ -64,6 +63,7 @@ def get_markerStationResponse(request: Request, markerresponse : MarkerResponse)
 
     arrivalsDict = {}
     for line in linesServed:
+        line = line.lower()
         lineArrivals = next_trains_api.get_next_unique_trains(station=stationName, line=line)
         arrivalsDict[line] = lineArrivals
 
