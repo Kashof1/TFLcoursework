@@ -14,5 +14,4 @@ project/data/mlData/testingdata.json
 project/data/mlData/trainingdata.json
 project/data/mlData/validatingdata.json
 project/core/__pycache__
-
-
+project/__pycache__/main.cpython-311.pyc
