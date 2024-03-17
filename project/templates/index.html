@@ -73,6 +73,98 @@
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
+    //bulk of the work happens in this function
+    //gets the data for the pressed marker, processes it, builds the accordion dropdown item dynamically with the data
+    //and then toggles the offcanvas popup
+    async function onMarkerPress(e) {
+      //below block gets the selected station id from the marker and then posts to server
+      //receives response to json format and assigns to responseVal
+      map.flyTo(e.latlng, 13);
+
+      let selectedStation = e.target.options.id;
+      let responseVal = await fetch("/", {
+        method : "POST",
+        headers : {"Content-Type" : "application/json"},
+        body : JSON.stringify({"station" : selectedStation}),
+      }
+      ).then((response) => response.json())
+      
+      //below block builds the title of the offcanvas
+      const stationTitle = document.getElementById("stationName");
+      stationTitle.innerHTML = responseVal['station'];
+
+      const linesServed = responseVal['linesServed'];
+      const nextArrivals = responseVal['nextArrivals']
+      
+      //getting offcanvas and deleting accordion
+      //this only works because offcanvas has a single child (THE MAIN ACCORDION BODY)
+      //if more items added to offcanvas, use while loop with similar syntax to remove all
+      const offcanvasBody = document.getElementById("mainBody");
+      if (offcanvasBody.firstChild){
+        offcanvasBody.removeChild(offcanvasBody.firstChild)
+      }
+
+      //getting accordion body and appending accordion item to it
+      let accordionBody = document.createElement("div");
+      accordionBody.setAttribute("id", "mainAccordionBody");
+      accordionBody.className = "accordion accordion-flush";
+
+      offcanvasBody.appendChild(accordionBody);
+
+
+      for(let line of linesServed){
+        let item = document.createElement("div");
+        item.classList.add('accordion-item');
+
+        let header = document.createElement("h2");
+        header.classList.add("accordion-header");
+
+        let button = document.createElement("button");
+        button.className = "accordion-button collapsed";
+        button.setAttribute('data-bs-toggle','collapse');
+        button.setAttribute("type", "button");
+        button.setAttribute("data-bs-target", `#collapse${line}`);
+        button.setAttribute("aria-expanded", "false");
+        button.setAttribute("aria-controls", `collapse${line}`);
+        button.innerHTML = `${line} line`;
+        button.style.color = lineColours[line]
+
+        let collapse = document.createElement("div");
+        collapse.className = "accordion-collapse collapse";      
+        collapse.setAttribute("id", `collapse${line}`);
+        collapse.setAttribute("data-bs-parent", "#mainAccordionBody");
+
+        let body = document.createElement("div");
+        const lineArrivals = nextArrivals[line.toLowerCase()];
+        body.className = "accordion-body";
+
+        //creating the list of soonest arrival times for each terminal station
+        let list = document.createElement("ul");
+        list.className = "list-group";
+
+        for (let terminus of Object.keys(lineArrivals)){
+          let listItem = document.createElement("li");
+          listItem.className = "list-group-item";
+          const minutes = Math.floor(lineArrivals[terminus] / 60); //the minutes of the time prediction using floor div
+          const seconds = lineArrivals[terminus] % 60;
+          listItem.innerHTML = `The train for <strong>${terminus}</strong> is arriving in ${minutes} minutes and ${seconds} seconds`
+          list.appendChild(listItem)
+        };
+
+        body.appendChild(list)
+
+        header.appendChild(button);
+        collapse.appendChild(body);
+
+        item.appendChild(header);
+        item.appendChild(collapse);
+        accordionBody.appendChild(item)
+
+      }
+      
+      //to allow time for map to get to marker
+      sleep(350).then(() => offcanvas.toggle());
+    };
 
     let markers = {};
 
@@ -90,85 +182,11 @@
         .bindTooltip(tooltipMessage, {direction : 'top', opacity : 0.9}); 
       
 
-        async function onMarkerPress(e) {
-          //below block gets the selected station id from the marker and then posts to server
-          //receives response to json format and assigns to responseVal
-          map.flyTo(e.latlng, 13)
-          let selectedStation = e.target.options.id;
-          let responseVal = await fetch("/", {
-            method : "POST",
-            headers : {"Content-Type" : "application/json"},
-            body : JSON.stringify({"station" : selectedStation}),
-          }
-          ).then((response) => response.json())
-          
-          //below block builds the title of the offcanvas
-          let stationTitle = document.getElementById("stationName");
-          stationTitle.innerHTML = responseVal['station'];
 
-          let linesServed = [];
-          linesServed = responseVal['linesServed'];
-          
-          //getting offcanvas and deleting accordion
-          //this only works because offcanvas has a single child (THE MAIN ACCORDION BODY)
-          //if more items added to offcanvas, use while loop with similar syntax to remove all
-          let offcanvasBody = document.getElementById("mainBody");
-          if (offcanvasBody.firstChild){
-            offcanvasBody.removeChild(offcanvasBody.firstChild)
-          }
-
-          //getting offcanvas body and appending accordion item to it
-          let accordionBody = document.createElement("div");
-          accordionBody.setAttribute("id", "mainAccordionBody");
-          accordionBody.className = "accordion accordion-flush";
-
-          offcanvasBody.appendChild(accordionBody);
-
-
-          for(let line of linesServed){
-            let item = document.createElement("div");
-            item.classList.add('accordion-item');
-
-            let header = document.createElement("h2");
-            header.classList.add("accordion-header");
-
-            let button = document.createElement("button");
-            button.className = "accordion-button collapsed";
-            button.setAttribute('data-bs-toggle','collapse');
-            button.setAttribute("type", "button");
-            button.setAttribute("data-bs-target", `#collapse${line}`);
-            button.setAttribute("aria-expanded", "false");
-            button.setAttribute("aria-controls", `collapse${line}`);
-
-            button.innerHTML = `${line} line`;
-            button.style.color = lineColours[line]
-
-            let collapse = document.createElement("div");
-            collapse.className = "accordion-collapse collapse";      
-            collapse.setAttribute("id", `collapse${line}`);
-            collapse.setAttribute("data-bs-parent", "#mainAccordionBody");
-
-            let body = document.createElement("div");
-            body.className = "accordion-body";
-            body.innerHTML = `this is the text for the ${line} line`;
-
-            header.appendChild(button);
-            collapse.appendChild(body);
-
-            item.appendChild(header);
-            item.appendChild(collapse);
-            accordionBody.appendChild(item)
-
-          }
-          
-          //to allow time for map to get to marker
-          sleep(350).then(() => offcanvas.toggle());
-        };
 
         markers[i].on('click', onMarkerPress);
         markers[i].addTo(map);
     };
-    console.log('hii');
 
 </script>
 
