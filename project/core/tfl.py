@@ -64,9 +64,22 @@ class get_tflstation(app_keyAppender):
         data = self.dataFetcher(url=url)
         return data
 
-    def get_next_unique_trains(self):
+    def get_next_unique_trains(self, line:str, station:str):
         #this function will get the next train for each unique 'destination' in the API call
-        pass
+        data = self.get_data(line=line, station=station)
+        output = {} #station:time
+        for prediction in data:
+            pDest = prediction['towards'] #terminal station of the train that the prediction is being made for
+            if pDest in output:
+                currentTime = output[pDest]
+                pTime = prediction['timeToStation']
+                if pTime < currentTime:
+                    output[pDest] = pTime
+            else:
+                pTime = prediction['timeToStation']
+                output[pDest] = pTime
+        
+        return output
 
     def validate_option(self, line: str, station: str):
         valid = True
