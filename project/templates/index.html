@@ -107,7 +107,9 @@
       //getting accordion body and appending accordion item to it
       let accordionBody = document.createElement("div");
       accordionBody.setAttribute("id", "mainAccordionBody");
-      accordionBody.className = "accordion accordion-flush";
+      accordionBody.className = "accordion";
+      
+
 
       offcanvasBody.appendChild(accordionBody);
 
@@ -126,6 +128,7 @@
         button.setAttribute("data-bs-target", `#collapse${line}`);
         button.setAttribute("aria-expanded", "false");
         button.setAttribute("aria-controls", `collapse${line}`);
+        button.setAttribute("id", `button${line}`)
         button.innerHTML = `${line} line`;
         button.style.color = lineColours[line]
 
@@ -133,25 +136,26 @@
         collapse.className = "accordion-collapse collapse";      
         collapse.setAttribute("id", `collapse${line}`);
         collapse.setAttribute("data-bs-parent", "#mainAccordionBody");
+        collapse.addEventListener('shown', function(){
+          console.log('shown')
+        })
+      
 
         let body = document.createElement("div");
         const lineArrivals = nextArrivals[line.toLowerCase()];
         body.className = "accordion-body";
+        body.setAttribute("id", `body${line}`);
 
         //creating the list of soonest arrival times for each terminal station
-        let list = document.createElement("ul");
-        list.className = "list-group";
 
+        let finalInput = ""
         for (let terminus of Object.keys(lineArrivals)){
-          let listItem = document.createElement("li");
-          listItem.className = "list-group-item";
           const minutes = Math.floor(lineArrivals[terminus] / 60); //the minutes of the time prediction using floor div
           const seconds = lineArrivals[terminus] % 60;
-          listItem.innerHTML = `The train for <strong>${terminus}</strong> is arriving in ${minutes} minutes and ${seconds} seconds`
-          list.appendChild(listItem)
+          finalInput = finalInput + `The next train for <strong>${terminus}</strong> is arriving in ${minutes} minutes and ${seconds} seconds<br><br>`
         };
 
-        body.appendChild(list)
+        body.innerHTML = finalInput
 
         header.appendChild(button);
         collapse.appendChild(body);
@@ -187,6 +191,7 @@
         markers[i].on('click', onMarkerPress);
         markers[i].addTo(map);
     };
+
 
 </script>
 
