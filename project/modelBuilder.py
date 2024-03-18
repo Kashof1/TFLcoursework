@@ -51,7 +51,7 @@ def normalisationGetter(featurename, dataset):
 def categoricalEncodingGetter(featurename, dataset, datatype="string"):
     # cast all types, regardless of string or int, to string (just in case integer indices are being used), as well as isolating the feature we want to use
     processedDS = dataset.map(lambda x, y: x[featurename])
-
+    print(processedDS)
     # creating a layer that 'knows' all of the possible 'words' that occur in the dataset and assigns them a number
     # alternating between string and integer depending on input data
     if datatype == "string":
@@ -64,7 +64,7 @@ def categoricalEncodingGetter(featurename, dataset, datatype="string"):
 
     # layer that one-hot encodes categorical indexes passed to it
     one_hot_layer = layers.CategoryEncoding(
-        output_mode="one_hot", num_tokens=number_of_columns
+        output_mode="one_hot", num_tokens=number_of_columns, dtype="int64"
     )
 
     # joining both layers together with a lambda function
