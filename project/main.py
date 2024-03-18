@@ -56,14 +56,16 @@ def mappage(request: Request):
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
     #King's Cross St Pancras behaving poorly - 'core.tfl - INFO - Invalid option(s) provided to get_tflstation instance'
     returnedStation = markerresponse.station
-    if returnedStation == 'Paddington (H&C Line)':
-        stationName = "Paddington (H&C Line)-Underground"
-    else:
-        stationName = f'{returnedStation} Underground Station'
+    log.info(returnedStation)
+    stationName = f'{returnedStation} Underground Station'
     with open (os.path.join('data', 'stationLineCombos.json'), 'r') as f:
         stationdata = json.load(f)
     linesServed = [each[0].capitalize() for each in stationdata if each[1] == stationName] 
     stationName = stationName.title()
+    if returnedStation == 'Paddington (H&C Line)':
+        stationName = "Paddington (H&C Line)-Underground"
+    elif returnedStation == "King's Cross St. Pancras":
+        stationName = "King's Cross St. Pancras Underground Station" #.title() turns King's into King'S 
 
     arrivalsDict = {}
     for line in linesServed:

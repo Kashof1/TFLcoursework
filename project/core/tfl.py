@@ -58,7 +58,7 @@ class get_tflstation(app_keyAppender):
     def get_data(self, line: str, station: str):
         stationID, line = self.validate_option(line, station)
         if len(stationID) == 0 or len(line) == 0:
-            log.info('Invalid option(s) provided to get_tflstation instance')
+            log.info(f'Invalid option(s) provided to get_tflstation instance. Options provided were {line} and {station}')
             return "No valid options provided"
         url = f"{self.base_url}{line}/Arrivals/{stationID}"
         data = self.dataFetcher(url=url)
