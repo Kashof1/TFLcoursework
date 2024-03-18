@@ -55,7 +55,6 @@ def mappage(request: Request):
 @app.post('/', response_class=JSONResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
     returnedStation = markerresponse.station
-    log.info(returnedStation)
     if returnedStation == 'Paddington (H&C Line)':
         stationName = "Paddington (H&C Line)-Underground"
     else:
