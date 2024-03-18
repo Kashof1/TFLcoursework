@@ -2,11 +2,16 @@ import pandas as pd
 import os
 import tensorflow as tf
 import keras
-from keras import layers
+from keras import layers, Layer
 from keras import activations
 from datetime import datetime
 import keras_tuner as kt
 import tensorboard
+
+
+class kerasSqueezeLayer(Layer):
+    def call(self, x):
+        return tf.squeeze(x)
 
 
 def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
@@ -69,7 +74,7 @@ def categoricalEncodingGetter(featurename, dataset, datatype="string"):
 
     # joining both layers together with a lambda function
     # feature --> given categorical index with intIndexLayer --> one-hot encoded with one_hot_layer
-    return lambda feature: one_hot_layer(intIndexLayer(feature))
+    return lambda feature: kerasSqueezeLayer()(one_hot_layer(intIndexLayer(feature)))
 
 
 """this function turns the latitude and longitude into discrete buckets and then associates them by "crossing" them"""
