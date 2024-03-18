@@ -54,9 +54,12 @@ def mappage(request: Request):
 
 @app.post('/', response_class=JSONResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
-    #paddington H&C line not returning any lines served
     returnedStation = markerresponse.station
-    stationName = f'{returnedStation} Underground Station'
+    log.info(returnedStation)
+    if returnedStation == 'Paddington (H&C Line)':
+        stationName = "Paddington (H&C Line)-Underground"
+    else:
+        stationName = f'{returnedStation} Underground Station'
     with open (os.path.join('data', 'stationLineCombos.json'), 'r') as f:
         stationdata = json.load(f)
     linesServed = [each[0].capitalize() for each in stationdata if each[1] == stationName] 
