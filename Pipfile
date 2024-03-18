@@ -17,6 +17,7 @@ pandas = "*"
 pydot = "*"
 graphviz = "*"
 keras-tuner = "*"
+pre-commit = "*"
 
 [dev-packages]
 ipykernel = "*"
