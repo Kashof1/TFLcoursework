@@ -1,6 +1,7 @@
 import logging
 import os
 import json
+import re
 from typing import Optional
 from pathlib import Path
 
@@ -43,6 +44,16 @@ def root(request : Request):
          'data': ['home page']}
     )'''
 
+def station_S_rectifier(string):
+    searchStr = r"'S"
+    matchobj = re.search(searchStr, string) #finding to see if there is a 'S in the station name
+    if matchobj:
+        (apost, S) = matchobj.span()
+        S-=1 #adjusting the index of the S for 0 indexing
+        return string[:S] + 's' + string[S+1:]
+    else:
+        return False
+
 @app.get('/', response_class=HTMLResponse)
 def mappage(request: Request):
     log.info('Root page loaded')
@@ -55,7 +66,6 @@ def mappage(request: Request):
 @app.post('/', response_class=JSONResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
     returnedStation = markerresponse.station
-    log.info(returnedStation)
     stationName = f'{returnedStation} Underground Station'
     with open (os.path.join('data', 'stationLineCombos.json'), 'r') as f:
         stationdata = json.load(f)
@@ -63,8 +73,9 @@ def get_markerStationResponse(request: Request, markerresponse : MarkerResponse)
     stationName = stationName.title()
     if returnedStation == 'Paddington (H&C Line)':
         stationName = "Paddington (H&C Line)-Underground"
-    elif returnedStation == "King's Cross St. Pancras":
-        stationName = "King's Cross St. Pancras Underground Station" #.title() turns King's into King'S 
+
+    rectifiedString = station_S_rectifier(string=stationName)
+    stationName = stationName if rectifiedString == False else rectifiedString
 
     #ALL NAMES WITH APOSTROPHES NEED TO BE FIXED (issue with .title())
 
@@ -115,3 +126,4 @@ async def testpage(request: Request):
     return templates.TemplateResponse(
         name = 'index.html', context={'request':request, 'data':'hello'}
     )
+
