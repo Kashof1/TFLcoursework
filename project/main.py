@@ -66,6 +66,8 @@ def get_markerStationResponse(request: Request, markerresponse : MarkerResponse)
     elif returnedStation == "King's Cross St. Pancras":
         stationName = "King's Cross St. Pancras Underground Station" #.title() turns King's into King'S 
 
+    #ALL NAMES WITH APOSTROPHES NEED TO BE FIXED (issue with .title())
+
     arrivalsDict = {}
     for line in linesServed:
         line = line.lower()
