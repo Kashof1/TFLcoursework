@@ -54,6 +54,7 @@ def mappage(request: Request):
 
 @app.post('/', response_class=JSONResponse)
 def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
+    #King's Cross St Pancras behaving poorly - 'core.tfl - INFO - Invalid option(s) provided to get_tflstation instance'
     returnedStation = markerresponse.station
     if returnedStation == 'Paddington (H&C Line)':
         stationName = "Paddington (H&C Line)-Underground"
