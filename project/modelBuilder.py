@@ -13,6 +13,9 @@ class kerasSqueezeLayer(Layer):
     def call(self, x):
         return tf.squeeze(x)
 
+    def compute_output_shape(self):
+        return (None, 272)
+
 
 def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
     labels = pdframe.pop("timeDiff")
