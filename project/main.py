@@ -27,103 +27,103 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 app = FastAPI()
-app.mount('/static', StaticFiles(directory='templates/static'), name='static')
-templates = Jinja2Templates(directory='templates')
+app.mount("/static", StaticFiles(directory="templates/static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 next_trains_api = get_tflstation()
+
 
 class MarkerResponse(BaseModel):
     station: str
 
-'''@app.get('/', response_class=HTMLResponse)
+
+"""@app.get('/', response_class=HTMLResponse)
 def root(request : Request):
     log.info("Loaded root page")
     return templates.TemplateResponse(
         'index.html',
         {'request' : request,
          'data': ['home page']}
-    )'''
+    )"""
+
 
 def station_S_rectifier(string):
     searchStr = r"'S"
-    matchobj = re.search(searchStr, string) #finding to see if there is a 'S in the station name
+    matchobj = re.search(
+        searchStr, string
+    )  # finding to see if there is a 'S in the station name
     if matchobj:
         (apost, S) = matchobj.span()
-        S-=1 #adjusting the index of the S for 0 indexing
-        return string[:S] + 's' + string[S+1:]
+        S -= 1  # adjusting the index of the S for 0 indexing
+        return string[:S] + "s" + string[S + 1 :]
     else:
         return False
 
-@app.get('/', response_class=HTMLResponse)
+
+@app.get("/", response_class=HTMLResponse)
 def mappage(request: Request):
-    log.info('Root page loaded')
-    return templates.TemplateResponse(
-        'index.html',
-        {'request' : request}
-    )
+    log.info("Root page loaded")
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.post('/', response_class=JSONResponse)
-def get_markerStationResponse(request: Request, markerresponse : MarkerResponse):
+@app.post("/", response_class=JSONResponse)
+def get_markerStationResponse(request: Request, markerresponse: MarkerResponse):
     returnedStation = markerresponse.station
-    stationName = f'{returnedStation} Underground Station'
-    with open (os.path.join('data', 'stationLineCombos.json'), 'r') as f:
+    stationName = f"{returnedStation} Underground Station"
+    with open(os.path.join("data", "stationLineCombos.json"), "r") as f:
         stationdata = json.load(f)
-    linesServed = [each[0].capitalize() for each in stationdata if each[1] == stationName] 
+    linesServed = [
+        each[0].capitalize() for each in stationdata if each[1] == stationName
+    ]
     stationName = stationName.title()
-    if returnedStation == 'Paddington (H&C Line)':
+    if returnedStation == "Paddington (H&C Line)":
         stationName = "Paddington (H&C Line)-Underground"
 
     rectifiedString = station_S_rectifier(string=stationName)
     stationName = stationName if rectifiedString == False else rectifiedString
 
-    #ALL NAMES WITH APOSTROPHES NEED TO BE FIXED (issue with .title())
+    # ALL NAMES WITH APOSTROPHES NEED TO BE FIXED (issue with .title())
 
     arrivalsDict = {}
     for line in linesServed:
         line = line.lower()
-        lineArrivals = next_trains_api.get_next_unique_trains(station=stationName, line=line)
+        lineArrivals = next_trains_api.get_next_unique_trains(
+            station=stationName, line=line
+        )
         arrivalsDict[line] = lineArrivals
 
     data = {
         "station": stationName,
-        "linesServed" : linesServed,
-        'nextArrivals' : arrivalsDict
-        }
-    log.info(f'Server received marker click data for {data}')
+        "linesServed": linesServed,
+        "nextArrivals": arrivalsDict,
+    }
+    log.info(f"Server received marker click data for {data}")
 
     encoded = jsonable_encoder(data)
-    return JSONResponse(content = encoded)
-    
+    return JSONResponse(content=encoded)
 
-@app.post('/sendStationData', response_class=JSONResponse)
+
+@app.post("/sendStationData", response_class=JSONResponse)
 def return_stationGeoData(request: Request):
-    log.info('Station data requested by front end')
-    with open(os.path.join('data','stationsgeo.json'),'r') as file:
+    log.info("Station data requested by front end")
+    with open(os.path.join("data", "stationsgeo.json"), "r") as file:
         data = json.load(file)
-        
+
     newdata = []
     for each in data:
-        lines = each['properties']['linesServed']
-        lines = lines.replace('Hammersmith & City', 'hammersmith-city')
-        lines = lines.replace('Waterloo & City', 'waterloo-city')
-        linearray = list(map(str.lower, lines.split(', ')))
-        each['properties']['linesServed'] = linearray
+        lines = each["properties"]["linesServed"]
+        lines = lines.replace("Hammersmith & City", "hammersmith-city")
+        lines = lines.replace("Waterloo & City", "waterloo-city")
+        linearray = list(map(str.lower, lines.split(", ")))
+        each["properties"]["linesServed"] = linearray
         newdata.append(each)
 
     encoded = jsonable_encoder(newdata)
-    return JSONResponse(content = encoded)
-
-    
+    return JSONResponse(content=encoded)
 
 
-
-
-
-
-@app.get('/testpage')
+@app.get("/testpage")
 async def testpage(request: Request):
     return templates.TemplateResponse(
-        name = 'index.html', context={'request':request, 'data':'hello'}
+        name="index.html", context={"request": request, "data": "hello"}
     )
-

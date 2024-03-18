@@ -8,9 +8,9 @@
 {% block page_content %}
 <head>
   <style>
-     #map { 
-      height: 80vh; 
-    } 
+     #map {
+      height: 80vh;
+    }
   </style>
 </head>
 
@@ -36,7 +36,7 @@
     function sleep(timeinms){
       return new Promise(resolve => setTimeout(resolve, timeinms));
     };
-    
+
     const lineColours = {
       'Bakerloo' : 'RGB(166,90,42)',
       'Central' : 'RGB(225,37,27)',
@@ -59,7 +59,7 @@
 
     const offcanvas = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
     //const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
-    
+
     //listener event that resets the map view every time the offcanvas panel is closed
     const off = document.querySelector('#offcanvasPanel')
     off.addEventListener('hide.bs.offcanvas', event => {
@@ -88,14 +88,14 @@
         body : JSON.stringify({"station" : selectedStation}),
       }
       ).then((response) => response.json())
-      
+
       //below block builds the title of the offcanvas
       const stationTitle = document.getElementById("stationName");
       stationTitle.innerHTML = responseVal['station'];
 
       const linesServed = responseVal['linesServed'];
       const nextArrivals = responseVal['nextArrivals']
-      
+
       //getting offcanvas and deleting accordion
       //this only works because offcanvas has a single child (THE MAIN ACCORDION BODY)
       //if more items added to offcanvas, use while loop with similar syntax to remove all
@@ -108,7 +108,7 @@
       let accordionBody = document.createElement("div");
       accordionBody.setAttribute("id", "mainAccordionBody");
       accordionBody.className = "accordion";
-      
+
 
 
       offcanvasBody.appendChild(accordionBody);
@@ -133,13 +133,13 @@
         button.style.color = lineColours[line]
 
         let collapse = document.createElement("div");
-        collapse.className = "accordion-collapse collapse";      
+        collapse.className = "accordion-collapse collapse";
         collapse.setAttribute("id", `collapse${line}`);
         collapse.setAttribute("data-bs-parent", "#mainAccordionBody");
         collapse.addEventListener('shown', function(){
           console.log('shown')
         })
-      
+
 
         let body = document.createElement("div");
         const lineArrivals = nextArrivals[line.toLowerCase()];
@@ -165,7 +165,7 @@
         accordionBody.appendChild(item)
 
       }
-      
+
       //to allow time for map to get to marker
       sleep(350).then(() => offcanvas.toggle());
     };
@@ -181,10 +181,10 @@
         for (let line of lines){
           tooltipMessage = tooltipMessage + `<img src='${imageRefBase}${line}Logo.png' width='30'/>`
         }
-        
+
         markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name})
-        .bindTooltip(tooltipMessage, {direction : 'top', opacity : 0.9}); 
-      
+        .bindTooltip(tooltipMessage, {direction : 'top', opacity : 0.9});
+
 
 
 
@@ -196,6 +196,3 @@
 </script>
 
 {% endblock %}
-
-
-

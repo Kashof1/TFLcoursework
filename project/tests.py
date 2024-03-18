@@ -1,19 +1,10 @@
-import json
-import os
+import re
 
-with open(os.path.join('project', 'data','stationsgeo.json'),'r') as file:
-    data = json.load(file)
-    
-newarray = []
-for each in data:
-    lines = each['properties']['linesServed']
-    lines = lines.replace('Hammersmith & City', 'hammersmith-city')
-    lines = lines.replace('Waterloo & City', 'waterloo-city')
-    linearray = list(map(str.lower, lines.split(', ')))
-    each['properties']['linesServed'] = linearray
-    newarray.append(each)
+string = "King'S Cross St Pancras"
+searchstr = r"'S"
+x = re.search(searchstr, string)
+(apost, s) = x.span()
+s -= 1
+newstring = string[:s] + "s" + string[s + 1 :]
 
-
-
-
-
+print(newstring)

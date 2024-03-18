@@ -1,7 +1,7 @@
-'''this file contains the optimised code for data collection, based on performance metrics
-from the original version'''
+"""this file contains the optimised code for data collection, based on performance metrics
+from the original version"""
 
-'''database token and cpu processes are currently configured for the raspberry pi on this file'''
+"""database token and cpu processes are currently configured for the raspberry pi on this file"""
 
 from multiprocessing import Manager
 import concurrent.futures
@@ -23,62 +23,67 @@ log = logging.getLogger(__name__)
 
 url = "http://localhost:8086"
 org = "Ghar"
-token = "_WLF5xavdkGh95hlk0d4-obeE9GgfA6TDYYbMLTMOUyz2MqBaUZBOpG6hElvUR-wec0p---x2p7Mn66KuE0CQQ==" #superuser token - could configure token with specific perms
+token = "_WLF5xavdkGh95hlk0d4-obeE9GgfA6TDYYbMLTMOUyz2MqBaUZBOpG6hElvUR-wec0p---x2p7Mn66KuE0CQQ=="  # superuser token - could configure token with specific perms
 dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
 
-recentAppend = 'No recent appends at the moment'
+recentAppend = "No recent appends at the moment"
+
 
 class tfl_dataCollector:
     def __init__(self, line, crowding_api):
-        self.crowding_api = crowding_api #passing in the crowding api so that all line scrapers use the same one (saving resources)
+        self.crowding_api = crowding_api  # passing in the crowding api so that all line scrapers use the same one (saving resources)
         self.line = line
         self.line_api = get_tflline(line=line)
-        
-        #building list of stations for this line
-        directory = os.path.join('data','stationLineCombos.json')
-        with open (directory, 'r', encoding='utf8') as file:
+
+        # building list of stations for this line
+        directory = os.path.join("data", "stationLineCombos.json")
+        with open(directory, "r", encoding="utf8") as file:
             jsonf = json.load(file)
             self.stationList = [item[1] for item in jsonf if item[0] == self.line]
 
     def arrivals_collector(self):
         try:
-            self.__currentTrains = {"TrainID" : ['Station','PredictedTime', 'ActualTime', 'Difference']} #private as this should not be monitored or changed by anything outside this method
+            self.__currentTrains = {
+                "TrainID": ["Station", "PredictedTime", "ActualTime", "Difference"]
+            }  # private as this should not be monitored or changed by anything outside this method
             while True:
                 arrivalsdata = self.line_api.get_data()
-                #this section adds any new, previously untracked trains to the list
+                # this section adds any new, previously untracked trains to the list
                 for each in arrivalsdata:
-                    trainId = each['vehicleId'] # type: ignore
+                    trainId = each["vehicleId"]  # type: ignore
                     if trainId not in self.__currentTrains:
-                        #formatting the predicted time nicely so that it can be operated on later
-                        formattedPrediction = datetime.strptime(each['expectedArrival'], '%Y-%m-%dT%H:%M:%SZ') # type: ignore 
-                        stationName = each['stationName'] # type: ignore
-                        self.__currentTrains[trainId] = [stationName, formattedPrediction,'',''] # type: ignore
-                
-                #this section checks to see if any trains have arrived (i.e. are no longer in the published predictions)
+                        # formatting the predicted time nicely so that it can be operated on later
+                        formattedPrediction = datetime.strptime(each["expectedArrival"], "%Y-%m-%dT%H:%M:%SZ")  # type: ignore
+                        stationName = each["stationName"]  # type: ignore
+                        self.__currentTrains[trainId] = [stationName, formattedPrediction, "", ""]  # type: ignore
+
+                # this section checks to see if any trains have arrived (i.e. are no longer in the published predictions)
                 for currentTrainid in list(self.__currentTrains):
-                    if currentTrainid == 'TrainID': #skipping header
+                    if currentTrainid == "TrainID":  # skipping header
                         pass
-                    elif not any(dataLine['vehicleId'] == currentTrainid for dataLine in arrivalsdata): # type: ignore
+                    elif not any(dataLine["vehicleId"] == currentTrainid for dataLine in arrivalsdata):  # type: ignore
                         currentArray = self.__currentTrains[currentTrainid]
                         predictedTime = currentArray[1]
-                        actualTime = datetime.now().replace(microsecond=0) #don't need microsecond precision, excessively redundant
+                        actualTime = datetime.now().replace(
+                            microsecond=0
+                        )  # don't need microsecond precision, excessively redundant
                         currentStation = currentArray[0]
 
-                        #calculating difference in times (in seconds)
-                        #positive difference --> late train, negative difference --> early train
-                        difference = (actualTime - predictedTime).total_seconds() # type: ignore
-                        if difference > -600: 
+                        # calculating difference in times (in seconds)
+                        # positive difference --> late train, negative difference --> early train
+                        difference = (actualTime - predictedTime).total_seconds()  # type: ignore
+                        if difference > -600:
                             self.database_appender(
                                 predictedTime=predictedTime,
                                 actualTime=actualTime,
                                 difference=difference,
-                                station=currentStation
+                                station=currentStation,
                             )
 
                             global recentAppend
-                            recentAppend = f'Appended data for {currentStation} on {self.line} at {datetime.now()}'
+                            recentAppend = f"Appended data for {currentStation} on {self.line} at {datetime.now()}"
                             print(recentAppend)
 
                             del self.__currentTrains[currentTrainid]
@@ -86,79 +91,95 @@ class tfl_dataCollector:
         except Exception as e:
             print(e)
 
-
-    def database_appender(self,
-            predictedTime,
-            actualTime,
-            difference,
-            station):
+    def database_appender(self, predictedTime, actualTime, difference, station):
         measurementName = f'{self.line}_{station.replace(" ","")}'
         crowdingValue = self.crowding_api.get_data(station=station)
         statusSeverityDictionary = self.status_collector()
         statusSeverityValue = statusSeverityDictionary[self.line]
 
-        writeData = Point(measurement_name=measurementName) \
-            .tag('predictedTime', predictedTime) \
-            .tag('actualTime', actualTime) \
-            .tag('line', self.line) \
-            .tag('station', station) \
-            .tag('crowding', crowdingValue) \
-            .tag('statusSeverity', statusSeverityValue) \
-            .field('timeDiff', difference) \
+        writeData = (
+            Point(measurement_name=measurementName)
+            .tag("predictedTime", predictedTime)
+            .tag("actualTime", actualTime)
+            .tag("line", self.line)
+            .tag("station", station)
+            .tag("crowding", crowdingValue)
+            .tag("statusSeverity", statusSeverityValue)
+            .field("timeDiff", difference)
             .time(time=actualTime)
+        )
 
-        write_api.write(bucket='TFLBucket', org=org, record=writeData)
-
+        write_api.write(bucket="TFLBucket", org=org, record=writeData)
 
     def status_collector(self):
         status_api = get_statusseverity()
         currentStatusDictionary = status_api.get_data()
-        del status_api #only keeping API for as long as we need it to get data
+        del status_api  # only keeping API for as long as we need it to get data
         return currentStatusDictionary
-
 
 
 def runStatusUpdater():
     while True:
         try:
-            isRunningMessage = f'The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads. {recentAppend}'
-            isRunningwebhook = DiscordWebhook(url='https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn', content=isRunningMessage)
+            isRunningMessage = f"The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads. {recentAppend}"
+            isRunningwebhook = DiscordWebhook(
+                url="https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn",
+                content=isRunningMessage,
+            )
             isRunningwebhook.execute()
             time.sleep(600)
-        except Exception: #if it errors wait a few seconds and try again until it works
+        except Exception:  # if it errors wait a few seconds and try again until it works
             while True:
                 time.sleep(5)
                 isRunningwebhook.execute()
-                break 
+                break
 
 
-if __name__ == '__main__':
-    lines = ["bakerloo","central","circle","district","hammersmith-city","jubilee","metropolitan","northern","piccadilly","victoria","waterloo-city"]
+if __name__ == "__main__":
+    lines = [
+        "bakerloo",
+        "central",
+        "circle",
+        "district",
+        "hammersmith-city",
+        "jubilee",
+        "metropolitan",
+        "northern",
+        "piccadilly",
+        "victoria",
+        "waterloo-city",
+    ]
     crowding_api = get_crowdingdata()
     dictOfLineScrapers = {}
     for line in lines:
-        dictOfLineScrapers[line] = tfl_dataCollector(line=line, crowding_api=crowding_api)
+        dictOfLineScrapers[line] = tfl_dataCollector(
+            line=line, crowding_api=crowding_api
+        )
 
-
-    statusCollectorInstance = tfl_dataCollector(line='placeholder', crowding_api='placeholder')
-    statusCollectorThread = threading.Thread(target=statusCollectorInstance.status_collector)
+    statusCollectorInstance = tfl_dataCollector(
+        line="placeholder", crowding_api="placeholder"
+    )
+    statusCollectorThread = threading.Thread(
+        target=statusCollectorInstance.status_collector
+    )
     statusCollectorThread.start()
 
-    testinstance = tfl_dataCollector(line='central', crowding_api=crowding_api)
-    #testinstance.arrivals_collector()
+    testinstance = tfl_dataCollector(line="central", crowding_api=crowding_api)
+    # testinstance.arrivals_collector()
 
-    '''status collector thread was started first as all the other threads need the current status. error would be thrown
-    if no such status exists'''
+    """status collector thread was started first as all the other threads need the current status. error would be thrown
+    if no such status exists"""
     threads = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=11) as executor: #using process pool as this better leverages the processing power of the RPi5
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=11
+    ) as executor:  # using process pool as this better leverages the processing power of the RPi5
         for linescraper in dictOfLineScrapers:
-            print(linescraper) #to show that all threads have loaded in terminal
-            threads.append(executor.submit(dictOfLineScrapers[linescraper].arrivals_collector))
-            time.sleep(0.1) #preventing sudden burden on processor
-        
+            print(linescraper)  # to show that all threads have loaded in terminal
+            threads.append(
+                executor.submit(dictOfLineScrapers[linescraper].arrivals_collector)
+            )
+            time.sleep(0.1)  # preventing sudden burden on processor
+
         runUpdateThread = threading.Thread(target=runStatusUpdater, daemon=True)
         runUpdateThread.start()
-        #set as a daemon as we dont want this thread to stay alive when all other threads have died and wrongly inform us that program is running
-        
-
-    
+        # set as a daemon as we dont want this thread to stay alive when all other threads have died and wrongly inform us that program is running
