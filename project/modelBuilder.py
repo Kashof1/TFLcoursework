@@ -9,16 +9,21 @@ import keras_tuner as kt
 import tensorboard
 
 
+@keras.saving.register_keras_serializable()
 class kerasSqueezeLayer(Layer):
+    def __init__(self, vocab_size, **kwargs):
+        self.vocab_size = vocab_size
+        super(kerasSqueezeLayer, self).__init__(**kwargs)
+
     def call(self, x):
-        return tf.squeeze(x)
+        return tf.cast(tf.squeeze(x), dtype="float32")
 
     def compute_output_shape(self):
-        return (None, 272)
+        return (None, self.vocab_size)
 
 
 def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
-    labels = pdframe.pop("timeDiff")
+    labels = pdframe.pop("timeDiff").astype("float32")
     pdframe = {
         key: value.values[:, tf.newaxis] for key, value in pdframe.items()
     }  # [:,tf.newaxis] adds the dimensionality
@@ -69,15 +74,18 @@ def categoricalEncodingGetter(featurename, dataset, datatype="string"):
 
     intIndexLayer.adapt(data=processedDS)
     number_of_columns = intIndexLayer.vocabulary_size()
+    print(number_of_columns)
 
     # layer that one-hot encodes categorical indexes passed to it
     one_hot_layer = layers.CategoryEncoding(
-        output_mode="one_hot", num_tokens=number_of_columns, dtype="int64"
+        output_mode="one_hot", num_tokens=number_of_columns, dtype="int32"
     )
 
     # joining both layers together with a lambda function
     # feature --> given categorical index with intIndexLayer --> one-hot encoded with one_hot_layer
-    return lambda feature: kerasSqueezeLayer()(one_hot_layer(intIndexLayer(feature)))
+    return lambda feature: kerasSqueezeLayer(vocab_size=number_of_columns)(
+        one_hot_layer(intIndexLayer(feature))
+    )
 
 
 """this function turns the latitude and longitude into discrete buckets and then associates them by "crossing" them"""
