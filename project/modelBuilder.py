@@ -212,7 +212,6 @@ if __name__ == "__main__":
     newmodel = keras.models.load_model("testmodel.keras")
     [(x, y)] = testing_dataset.take(1)  # type: ignore
     predictions = newmodel.predict(x)  # type: ignore
-    print(newmodel.get_config())
 
     y = list(y)
     predictions = list(predictions)
