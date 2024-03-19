@@ -200,7 +200,7 @@ if __name__ == "__main__":
     print(model.summary())
     model.fit(
         training_dataset,
-        epochs=15,
+        epochs=10,
         validation_data=validating_dataset,
         callbacks=[tensorboard_callback],
     )
