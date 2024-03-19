@@ -73,7 +73,6 @@ def normalisationGetter(featurename, dataset):
 def categoricalEncodingGetter(featurename, dataset, datatype="string"):
     # cast all types, regardless of string or int, to string (just in case integer indices are being used), as well as isolating the feature we want to use
     processedDS = dataset.map(lambda x, y: x[featurename])
-    print(processedDS)
     # creating a layer that 'knows' all of the possible 'words' that occur in the dataset and assigns them a number
     # alternating between string and integer depending on input data
     if datatype == "string":
@@ -83,7 +82,6 @@ def categoricalEncodingGetter(featurename, dataset, datatype="string"):
 
     intIndexLayer.adapt(data=processedDS)
     number_of_columns = intIndexLayer.vocabulary_size()
-    print(number_of_columns)
 
     # layer that one-hot encodes categorical indexes passed to it
     one_hot_layer = layers.CategoryEncoding(
@@ -150,7 +148,7 @@ if __name__ == "__main__":
         encoded_input_column = normLayer(numeric_input_column_raw)
         raw_input_layers.append(numeric_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
-    """
+
     for header in categorical_headers:
         cat_input_column_raw = keras.Input(shape=(1,), name=header, dtype="string")
         catLayer = categoricalEncodingGetter(
@@ -168,7 +166,7 @@ if __name__ == "__main__":
         encoded_input_column = catLayer(cat_input_column_raw)
         raw_input_layers.append(cat_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
-    """
+
     lat_input_column_raw = keras.Input(shape=(1,), name="latitude", dtype="float64")
     long_input_column_raw = keras.Input(shape=(1,), name="longitude", dtype="float64")
     geoLayer = geographicalEncodingGetter(dataset=training_dataset)
@@ -185,25 +183,24 @@ if __name__ == "__main__":
     )
 
     input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
-    x = keras.layers.Dense(400, activation=activations.leaky_relu)(
-        input_formatting_layer
-    )
-    x = keras.layers.Dense(300, activation=activations.leaky_relu)(x)
-    x = keras.layers.Dense(50, activation=activations.linear)(x)
+    x = keras.layers.Dense(1000, activation=activations.linear)(input_formatting_layer)
+    x = keras.layers.Dense(1000, activation=activations.linear)(x)
+    x = keras.layers.Dropout(rate=0.05)(x)
+    x = keras.layers.Dense(300, activation=activations.linear)(x)
     output_layer = keras.layers.Dense(1)(x)
 
     model = keras.Model(raw_input_layers, output_layer)
 
     model.compile(
         optimizer=keras.optimizers.Adam(),
-        loss=keras.losses.mean_squared_error,
-        metrics=[keras.metrics.RootMeanSquaredError()],
+        loss=keras.losses.mean_absolute_error,
+        metrics=[keras.metrics.mean_absolute_percentage_error],
     )
 
     print(model.summary())
     model.fit(
         training_dataset,
-        epochs=10,
+        epochs=15,
         validation_data=validating_dataset,
         callbacks=[tensorboard_callback],
     )
@@ -211,12 +208,17 @@ if __name__ == "__main__":
     print("Loss", loss)
 
     model.save("testmodel.keras")
+
     newmodel = keras.models.load_model("testmodel.keras")
     [(x, y)] = testing_dataset.take(1)  # type: ignore
     predictions = newmodel.predict(x)  # type: ignore
+    print(newmodel.get_config())
 
     y = list(y)
     predictions = list(predictions)
     print(predictions[0], y[0])
     print(predictions[10], y[10])
     print(predictions[50], y[50])
+
+    for count in range(len(predictions)):
+        print(predictions[count], y[count])
