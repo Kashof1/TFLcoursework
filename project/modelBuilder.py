@@ -31,6 +31,15 @@ class kerasSqueezeLayer(Layer):
         return cls(**config)
 
 
+@keras.saving.register_keras_serializable()
+class kerasConcatenateLayer(Layer):
+    def __init__(self, **kwargs):
+        super(kerasConcatenateLayer, self).__init__(**kwargs)
+
+    def call(self, x):
+        return keras.layers.concatenate(x)
+
+
 def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
     labels = pdframe.pop("timeDiff").astype("float32")
     pdframe = {
@@ -89,7 +98,7 @@ def categoricalEncodingGetter(featurename, dataset, datatype="string"):
     )
 
     # joining both layers together with a lambda function
-    # feature --> given categorical index with intIndexLayer --> one-hot encoded with one_hot_layer
+    # feature --> given categorical index with intIndexLayer --> one-hot encoded with one_hot_layer --> remove one layer of dimensionality from it using squeeze
     return lambda feature: kerasSqueezeLayer(vocab_size=number_of_columns)(
         one_hot_layer(intIndexLayer(feature))
     )
@@ -181,7 +190,7 @@ if __name__ == "__main__":
     tensorboard_callback = keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=0
     )
-
+    """
     input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
     x = keras.layers.Dense(1000, activation=activations.linear)(input_formatting_layer)
     x = keras.layers.Dense(1000, activation=activations.linear)(x)
@@ -196,7 +205,68 @@ if __name__ == "__main__":
         loss=keras.losses.mean_absolute_error,
         metrics=[keras.metrics.mean_absolute_percentage_error],
     )
+    """
 
+    def model_builder(hp):
+        model = keras.Sequential()
+        input_formatting_layer = kerasConcatenateLayer()(encoded_input_layers)
+        model.add(
+            input_formatting_layer
+        )  # error here, it wants a kerasLayer and is being given a keras tensor
+        x = kt.HyperParameters()
+        x.Float
+        for layerNumber in range(hp.Int("layer_num", 3, 6)):
+            layer = layers.Dense(
+                units=hp.Int(
+                    f"units{layerNumber}", min_value=1000, max_value=8000, step=500
+                ),
+                activation=hp.Choice("activation", ["linear", "tanh"]),
+            )
+            model.add(layer)
+
+        if hp.Boolean("dropout"):
+            droupoutLayer = layers.Dropout(
+                rate=hp.Float(
+                    "dropoutRate", min_value=0.01, max_value=0.1, sampling="log"
+                )
+            )
+            model.add(droupoutLayer)
+
+        learn_rate = hp.Float(
+            "learn_rate", min_value=0.0001, max_value=0.01, sampling="log"
+        )
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
+            loss=keras.losses.mean_squared_error,  # currently using mean squared error as this should penalise the poor behaviour for large values more
+            metrics=[keras.metrics.MeanAbsoluteError],
+        )
+
+    tuner = kt.RandomSearch(
+        hypermodel=model_builder,
+        objective="mse",
+        max_trials=10,
+        executions_per_trial=1,
+        overwrite=True,
+        directory="hyperTuning",
+        project_name="take_one",
+    )
+
+    tuner.search(training_dataset, epochs=3, validation_data=validating_dataset)
+    bestModels = tuner.get_best_models(num_models=2)
+    bestModel = bestModels[0]
+    bestModel.summary()
+
+    bestModel.save("bestmodel.keras")
+    newbest = keras.models.load_model("bestmodel.keras")
+    [(x, y)] = testing_dataset.take(1)
+    predictions = newbest.predict(x)
+
+    y = list(y)
+    predictions = list(predictions)
+    for each in range(len(predictions)):
+        print(predictions[each], y[each])
+
+    """
     print(model.summary())
     model.fit(
         training_dataset,
@@ -221,3 +291,4 @@ if __name__ == "__main__":
 
     for count in range(len(predictions)):
         print(predictions[count], y[count])
+    """
