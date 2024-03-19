@@ -21,6 +21,15 @@ class kerasSqueezeLayer(Layer):
     def compute_output_shape(self):
         return (None, self.vocab_size)
 
+    def get_config(self):
+        config = super(kerasSqueezeLayer, self).get_config()
+        config.update({"vocab_size": self.vocab_size})
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
     labels = pdframe.pop("timeDiff").astype("float32")
@@ -141,7 +150,7 @@ if __name__ == "__main__":
         encoded_input_column = normLayer(numeric_input_column_raw)
         raw_input_layers.append(numeric_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
-
+    """
     for header in categorical_headers:
         cat_input_column_raw = keras.Input(shape=(1,), name=header, dtype="string")
         catLayer = categoricalEncodingGetter(
@@ -159,7 +168,7 @@ if __name__ == "__main__":
         encoded_input_column = catLayer(cat_input_column_raw)
         raw_input_layers.append(cat_input_column_raw)
         encoded_input_layers.append(encoded_input_column)
-
+    """
     lat_input_column_raw = keras.Input(shape=(1,), name="latitude", dtype="float64")
     long_input_column_raw = keras.Input(shape=(1,), name="longitude", dtype="float64")
     geoLayer = geographicalEncodingGetter(dataset=training_dataset)
@@ -176,8 +185,10 @@ if __name__ == "__main__":
     )
 
     input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
-    x = keras.layers.Dense(400, activation=layers.PReLU())(input_formatting_layer)
-    x = keras.layers.Dense(300, activation=layers.PReLU())(x)
+    x = keras.layers.Dense(400, activation=activations.leaky_relu)(
+        input_formatting_layer
+    )
+    x = keras.layers.Dense(300, activation=activations.leaky_relu)(x)
     x = keras.layers.Dense(50, activation=activations.linear)(x)
     output_layer = keras.layers.Dense(1)(x)
 
@@ -185,7 +196,7 @@ if __name__ == "__main__":
 
     model.compile(
         optimizer=keras.optimizers.Adam(),
-        loss=keras.losses.mean_absolute_percentage_error,
+        loss=keras.losses.mean_squared_error,
         metrics=[keras.metrics.RootMeanSquaredError()],
     )
 
