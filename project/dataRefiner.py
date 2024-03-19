@@ -50,13 +50,15 @@ def rawDataLoader():
         result = query_api.query(org=org, query=query)
         for table in result:
             for record in table:
-                plcolumns["measurementName"].append(record.values["_measurement"])
-                plcolumns["predictedTime"].append(record.values["predictedTime"])
-                plcolumns["station"].append(record.values["station"])
-                plcolumns["line"].append(record.values["line"])
-                plcolumns["crowding"].append(record.values["crowding"])
-                plcolumns["statusSeverity"].append(record.values["statusSeverity"])
-                plcolumns["timeDiff"].append(record.values["_value"])
+                if record.values["_value"] < 600:
+                    plcolumns["measurementName"].append(record.values["_measurement"])
+                    plcolumns["predictedTime"].append(record.values["predictedTime"])
+                    plcolumns["station"].append(record.values["station"])
+                    plcolumns["line"].append(record.values["line"])
+                    plcolumns["crowding"].append(record.values["crowding"])
+                    plcolumns["statusSeverity"].append(record.values["statusSeverity"])
+                    plcolumns["timeDiff"].append(record.values["_value"])
+                    print(record.values["_value"])
         print(f"measurement {measurementCount} raw data loaded")
 
     outputpl = polars.DataFrame(plcolumns)
