@@ -208,11 +208,43 @@ if __name__ == "__main__":
     """
 
     def model_builder(hp):
+        x = keras.layers.concatenate(
+            inputs=encoded_input_layers, name="input_formattting_layer"
+        )  # input formatting layer
+
+        for layerNumber in range(hp.Int("layer_num", 3, 6)):
+            x = layers.Dense(
+                units=hp.Int(
+                    f"units{layerNumber}", min_value=500, max_value=5000, step=500
+                ),
+                activation=hp.Choice("activation", ["linear", "tanh"]),
+            )(x)
+
+        if hp.Boolean("dropout"):
+            x = layers.Dropout(
+                rate=hp.Float(
+                    "dropoutRate", min_value=0.001, max_value=0.1, sampling="log"
+                ),
+                name="dropoutLayer",
+            )(x)
+
+        outputLayer = layers.Dense(units=1)(x)
+
+        learn_rate = hp.Float(
+            "learn_rate", min_value=0.0001, max_value=0.1, sampling="log"
+        )
+        model = keras.Model(raw_input_layers, outputLayer)
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
+            loss=keras.losses.mean_squared_error,
+            metrics=[keras.metrics.mean_absolute_error],
+        )
+        return model
+
+    def model_builderSequential(hp):  # obsolete
         model = keras.Sequential()
-        input_formatting_layer = kerasConcatenateLayer()(encoded_input_layers)
-        model.add(
-            input_formatting_layer
-        )  # error here, it wants a kerasLayer and is being given a keras tensor
+        input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
+
         x = kt.HyperParameters()
         x.Float
         for layerNumber in range(hp.Int("layer_num", 3, 6)):
@@ -225,12 +257,12 @@ if __name__ == "__main__":
             model.add(layer)
 
         if hp.Boolean("dropout"):
-            droupoutLayer = layers.Dropout(
+            dropoutLayer = layers.Dropout(
                 rate=hp.Float(
                     "dropoutRate", min_value=0.01, max_value=0.1, sampling="log"
                 )
             )
-            model.add(droupoutLayer)
+            model.add(dropoutLayer)
 
         learn_rate = hp.Float(
             "learn_rate", min_value=0.0001, max_value=0.01, sampling="log"
@@ -238,17 +270,17 @@ if __name__ == "__main__":
         model.compile(
             optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
             loss=keras.losses.mean_squared_error,  # currently using mean squared error as this should penalise the poor behaviour for large values more
-            metrics=[keras.metrics.MeanAbsoluteError],
+            metrics=[keras.metrics.mean_absolute_error],
         )
 
     tuner = kt.RandomSearch(
         hypermodel=model_builder,
-        objective="mse",
+        objective="val_mean_absolute_error",
         max_trials=10,
         executions_per_trial=1,
         overwrite=True,
         directory="hyperTuning",
-        project_name="take_one",
+        project_name="functional_model_RandomSearch",
     )
 
     tuner.search(training_dataset, epochs=3, validation_data=validating_dataset)
