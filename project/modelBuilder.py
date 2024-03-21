@@ -241,52 +241,41 @@ if __name__ == "__main__":
         )
         return model
 
-    def model_builderSequential(hp):  # obsolete
-        model = keras.Sequential()
-        input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
-
-        x = kt.HyperParameters()
-        x.Float
-        for layerNumber in range(hp.Int("layer_num", 3, 6)):
-            layer = layers.Dense(
-                units=hp.Int(
-                    f"units{layerNumber}", min_value=1000, max_value=8000, step=500
-                ),
-                activation=hp.Choice("activation", ["linear", "tanh"]),
-            )
-            model.add(layer)
-
-        if hp.Boolean("dropout"):
-            dropoutLayer = layers.Dropout(
-                rate=hp.Float(
-                    "dropoutRate", min_value=0.01, max_value=0.1, sampling="log"
-                )
-            )
-            model.add(dropoutLayer)
-
-        learn_rate = hp.Float(
-            "learn_rate", min_value=0.0001, max_value=0.01, sampling="log"
-        )
-        model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
-            loss=keras.losses.mean_squared_error,  # currently using mean squared error as this should penalise the poor behaviour for large values more
-            metrics=[keras.metrics.mean_absolute_error],
-        )
-
+    tuner = kt.Hyperband(
+        hypermodel=model_builder,
+        objective="val_mean_absolute_error",
+        max_epochs=20,
+        directory="hyperTuning",
+        project_name="functional_model_Hyperband",
+        overwrite=False,
+    )
+    """
     tuner = kt.RandomSearch(
         hypermodel=model_builder,
         objective="val_mean_absolute_error",
-        max_trials=10,
+        max_trials=15,
         executions_per_trial=1,
-        overwrite=True,
+        overwrite=False,
         directory="hyperTuning",
         project_name="functional_model_RandomSearch",
     )
-
-    tuner.search(training_dataset, epochs=3, validation_data=validating_dataset)
+    """
+    early_callback = keras.callbacks.EarlyStopping(
+        monitor="val_loss",
+        patience=2,
+    )
+    """
+    tuner.search(
+        training_dataset,
+        epochs=3,
+        validation_data=validating_dataset,
+        callbacks=[tensorboard_callback, early_callback]
+        )
+    """
     bestModels = tuner.get_best_models(num_models=2)
     bestModel = bestModels[0]
     bestModel.summary()
+    print(bestModel.get_config())
 
     bestModel.save("bestmodel.keras")
     newbest = keras.models.load_model("bestmodel.keras")
