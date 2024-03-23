@@ -6,9 +6,9 @@ This file is not intended to be called or used by any other file, and simply con
 import csv
 import json
 import os
-from geojson import Feature, FeatureCollection, Point, dump
 
 from core.utils import get_url
+from geojson import Feature, FeatureCollection, Point, dump
 
 
 def stationNaptanUpdater():

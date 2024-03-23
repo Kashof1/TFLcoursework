@@ -3,21 +3,20 @@ from the original version"""
 
 """database token and cpu processes are currently configured for the raspberry pi on this file"""
 
-from multiprocessing import Manager
 import concurrent.futures
-from datetime import datetime
 import json
 import logging
 import os
+import sys
 import threading
 import time
-import sys
+from datetime import datetime
+from multiprocessing import Manager
+
+from core.tfl import get_crowdingdata, get_statusseverity, get_tflline
 from discord_webhook import DiscordWebhook
-
-from influxdb_client import Point, InfluxDBClient
+from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-
-from core.tfl import get_tflline, get_crowdingdata, get_statusseverity
 
 log = logging.getLogger(__name__)
 
@@ -140,7 +139,9 @@ def runStatusUpdater():
             )
             isRunningwebhook.execute()
             time.sleep(600)
-        except Exception:  # if it errors wait a few seconds and try again until it works
+        except (
+            Exception
+        ):  # if it errors wait a few seconds and try again until it works
             while True:
                 time.sleep(5)
                 isRunningwebhook.execute()

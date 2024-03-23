@@ -1,8 +1,8 @@
 import logging
 
-from core.utils import get_url
 import core.tfl_line as tfl_line
 from core.databaseutils import DatabaseHandler
+from core.utils import get_url
 
 log = logging.getLogger(__name__)
 tflinstance = tfl_line.get_tflline()

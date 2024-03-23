@@ -1,12 +1,13 @@
-import pandas as pd
 import os
-import tensorflow as tf
-import keras
-from keras import layers, Layer
-from keras import activations
 from datetime import datetime
+
+import keras
 import keras_tuner as kt
+import pandas as pd
 import tensorboard
+import tensorflow as tf
+from keras import Layer, activations, layers
+
 
 # error likely in this function
 @keras.saving.register_keras_serializable()

@@ -1,6 +1,7 @@
-from influxdb_client import Point, InfluxDBClient
-from influxdb_client.client.write_api import SYNCHRONOUS
 import datetime
+
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 url = "http://localhost:8086"
 org = "Ghar"

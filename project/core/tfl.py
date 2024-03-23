@@ -1,8 +1,8 @@
-import os
 import json
 import logging
-import time
+import os
 import random
+import time
 from urllib.error import HTTPError
 
 from core.utils import get_url

@@ -1,12 +1,12 @@
-import os
-import time
 import csv
-import re
 import json
-import polars
+import os
+import re
+import time
 from datetime import datetime
 
-from influxdb_client import Point, InfluxDBClient
+import polars
+from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 bucket = "TFLBucket"

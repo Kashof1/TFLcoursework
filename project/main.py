@@ -1,18 +1,17 @@
+import json
 import logging
 import os
-import json
 import re
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
+from core.tfl import get_tflstation
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, Response, JSONResponse
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-
-from core.tfl import get_tflstation
 
 logs_file = Path(Path().resolve(), "log.txt")
 logs_file.touch(exist_ok=True)
