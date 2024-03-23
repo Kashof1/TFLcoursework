@@ -128,7 +128,7 @@ def geographicalEncodingGetter(dataset):
     )
 
 
-if __name__ == "__main__":
+def input_layers_builder():
     trainpath = os.path.join("data", "mlData", "trainingdata.json")
     testpath = os.path.join("data", "mlData", "testingdata.json")
     valpath = os.path.join("data", "mlData", "validatingdata.json")
@@ -183,29 +183,17 @@ if __name__ == "__main__":
     raw_input_layers.append(lat_input_column_raw)
     raw_input_layers.append(long_input_column_raw)
     encoded_input_layers.append(encoded_geo_column)
+    return (raw_input_layers, encoded_input_layers)
 
+
+if __name__ == "__main__":
     # MODEL TRAINING AND CONFIG STARTS HERE
+    (raw_input_layers, encoded_input_layers) = input_layers_builder()
 
     log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=0
     )
-    """
-    input_formatting_layer = keras.layers.concatenate(encoded_input_layers)
-    x = keras.layers.Dense(1000, activation=activations.linear)(input_formatting_layer)
-    x = keras.layers.Dense(1000, activation=activations.linear)(x)
-    x = keras.layers.Dropout(rate=0.05)(x)
-    x = keras.layers.Dense(300, activation=activations.linear)(x)
-    output_layer = keras.layers.Dense(1)(x)
-
-    model = keras.Model(raw_input_layers, output_layer)
-
-    model.compile(
-        optimizer=keras.optimizers.Adam(),
-        loss=keras.losses.mean_absolute_error,
-        metrics=[keras.metrics.mean_absolute_percentage_error],
-    )
-    """
 
     def model_builder(hp):
         x = keras.layers.concatenate(
@@ -249,29 +237,19 @@ if __name__ == "__main__":
         project_name="functional_model_Hyperband",
         overwrite=False,
     )
-    """
-    tuner = kt.RandomSearch(
-        hypermodel=model_builder,
-        objective="val_mean_absolute_error",
-        max_trials=15,
-        executions_per_trial=1,
-        overwrite=False,
-        directory="hyperTuning",
-        project_name="functional_model_RandomSearch",
-    )
-    """
+
     early_callback = keras.callbacks.EarlyStopping(
         monitor="val_loss",
         patience=2,
     )
-    """
+
     tuner.search(
         training_dataset,
         epochs=3,
         validation_data=validating_dataset,
-        callbacks=[tensorboard_callback, early_callback]
-        )
-    """
+        callbacks=[tensorboard_callback, early_callback],
+    )
+
     bestModels = tuner.get_best_models(num_models=2)
     bestModel = bestModels[0]
     bestModel.summary()
@@ -286,30 +264,3 @@ if __name__ == "__main__":
     predictions = list(predictions)
     for each in range(len(predictions)):
         print(predictions[each], y[each])
-
-    """
-    print(model.summary())
-    model.fit(
-        training_dataset,
-        epochs=10,
-        validation_data=validating_dataset,
-        callbacks=[tensorboard_callback],
-    )
-    loss, accuracy = model.evaluate(testing_dataset)
-    print("Loss", loss)
-
-    model.save("testmodel.keras")
-
-    newmodel = keras.models.load_model("testmodel.keras")
-    [(x, y)] = testing_dataset.take(1)  # type: ignore
-    predictions = newmodel.predict(x)  # type: ignore
-
-    y = list(y)
-    predictions = list(predictions)
-    print(predictions[0], y[0])
-    print(predictions[10], y[10])
-    print(predictions[50], y[50])
-
-    for count in range(len(predictions)):
-        print(predictions[count], y[count])
-    """
