@@ -37,16 +37,6 @@ class MarkerResponse(BaseModel):
     station: str
 
 
-"""@app.get('/', response_class=HTMLResponse)
-def root(request : Request):
-    log.info("Loaded root page")
-    return templates.TemplateResponse(
-        'index.html',
-        {'request' : request,
-         'data': ['home page']}
-    )"""
-
-
 def station_S_rectifier(string):
     searchStr = r"'S"
     matchobj = re.search(
@@ -120,10 +110,3 @@ def return_stationGeoData(request: Request):
 
     encoded = jsonable_encoder(newdata)
     return JSONResponse(content=encoded)
-
-
-@app.get("/testpage")
-async def testpage(request: Request):
-    return templates.TemplateResponse(
-        name="index.html", context={"request": request, "data": "hello"}
-    )
