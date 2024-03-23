@@ -192,6 +192,40 @@ def input_layers_builder():
     )
 
 
+# this is the hyperparameters model-building and search space
+def model_builder(hp):
+    x = keras.layers.concatenate(
+        inputs=encoded_input_layers, name="input_formattting_layer"
+    )  # input formatting layer
+
+    for layerNumber in range(hp.Int("layer_num", 3, 6)):
+        x = layers.Dense(
+            units=hp.Int(
+                f"units{layerNumber}", min_value=500, max_value=5000, step=500
+            ),
+            activation=hp.Choice("activation", ["linear", "tanh"]),
+        )(x)
+
+    if hp.Boolean("dropout"):
+        x = layers.Dropout(
+            rate=hp.Float(
+                "dropoutRate", min_value=0.001, max_value=0.1, sampling="log"
+            ),
+            name="dropoutLayer",
+        )(x)
+
+    outputLayer = layers.Dense(units=1)(x)
+
+    learn_rate = hp.Float("learn_rate", min_value=0.0001, max_value=0.1, sampling="log")
+    model = keras.Model(raw_input_layers, outputLayer)
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
+        loss=keras.losses.mean_squared_error,
+        metrics=[keras.metrics.mean_absolute_error],
+    )
+    return model
+
+
 if __name__ == "__main__":
     # MODEL TRAINING AND CONFIG STARTS HERE
     (
@@ -206,40 +240,6 @@ if __name__ == "__main__":
     tensorboard_callback = keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=0
     )
-
-    def model_builder(hp):
-        x = keras.layers.concatenate(
-            inputs=encoded_input_layers, name="input_formattting_layer"
-        )  # input formatting layer
-
-        for layerNumber in range(hp.Int("layer_num", 3, 6)):
-            x = layers.Dense(
-                units=hp.Int(
-                    f"units{layerNumber}", min_value=500, max_value=5000, step=500
-                ),
-                activation=hp.Choice("activation", ["linear", "tanh"]),
-            )(x)
-
-        if hp.Boolean("dropout"):
-            x = layers.Dropout(
-                rate=hp.Float(
-                    "dropoutRate", min_value=0.001, max_value=0.1, sampling="log"
-                ),
-                name="dropoutLayer",
-            )(x)
-
-        outputLayer = layers.Dense(units=1)(x)
-
-        learn_rate = hp.Float(
-            "learn_rate", min_value=0.0001, max_value=0.1, sampling="log"
-        )
-        model = keras.Model(raw_input_layers, outputLayer)
-        model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
-            loss=keras.losses.mean_squared_error,
-            metrics=[keras.metrics.mean_absolute_error],
-        )
-        return model
 
     tuner = kt.Hyperband(
         hypermodel=model_builder,
@@ -265,13 +265,13 @@ if __name__ == "__main__":
     bestModels = tuner.get_best_models(num_models=2)
     bestModel = bestModels[0]
     bestModel.summary()
-    print(bestModel.get_config())
 
     bestModel.save("bestmodel.keras")
+
+    # loading the model up again and printing some of its inference in order to review the model
     newbest = keras.models.load_model("bestmodel.keras")
     [(x, y)] = testing_dataset.take(1)
     predictions = newbest.predict(x)
-
     y = list(y)
     predictions = list(predictions)
     for each in range(len(predictions)):
