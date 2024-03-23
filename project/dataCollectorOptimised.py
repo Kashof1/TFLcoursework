@@ -52,28 +52,40 @@ class tfl_dataCollector:
                 arrivalsdata = self.line_api.get_data()
                 # this section adds any new, previously untracked trains to the list
                 for each in arrivalsdata:
-                    trainId = each["vehicleId"]  # type: ignore
+                    trainId = each["vehicleId"]
                     if trainId not in self.__currentTrains:
                         # formatting the predicted time nicely so that it can be operated on later
-                        formattedPrediction = datetime.strptime(each["expectedArrival"], "%Y-%m-%dT%H:%M:%SZ")  # type: ignore
-                        stationName = each["stationName"]  # type: ignore
-                        self.__currentTrains[trainId] = [stationName, formattedPrediction, "", ""]  # type: ignore
+                        formattedPrediction = datetime.strptime(
+                            each["expectedArrival"], "%Y-%m-%dT%H:%M:%SZ"
+                        )
+                        stationName = each["stationName"]
+                        self.__currentTrains[trainId] = [
+                            stationName,
+                            formattedPrediction,
+                            "",
+                            "",
+                        ]
 
                 # this section checks to see if any trains have arrived (i.e. are no longer in the published predictions)
                 for currentTrainid in list(self.__currentTrains):
                     if currentTrainid == "TrainID":  # skipping header
                         pass
-                    elif not any(dataLine["vehicleId"] == currentTrainid for dataLine in arrivalsdata):  # type: ignore
-                        currentArray = self.__currentTrains[currentTrainid]
+                    elif not any(
+                        dataLine["vehicleId"] == currentTrainid
+                        for dataLine in arrivalsdata
+                    ):
+                        currentArray = self.__currentTrains[
+                            currentTrainid
+                        ]  # getting the array of data for the train that has arrived
                         predictedTime = currentArray[1]
                         actualTime = datetime.now().replace(
                             microsecond=0
-                        )  # don't need microsecond precision, excessively redundant
+                        )  # don't need microsecond precision, excessive and redundant
                         currentStation = currentArray[0]
 
                         # calculating difference in times (in seconds)
                         # positive difference --> late train, negative difference --> early train
-                        difference = (actualTime - predictedTime).total_seconds()  # type: ignore
+                        difference = (actualTime - predictedTime).total_seconds()
                         if difference > -600:
                             self.database_appender(
                                 predictedTime=predictedTime,
@@ -82,11 +94,9 @@ class tfl_dataCollector:
                                 station=currentStation,
                             )
 
-                            global recentAppend
-                            recentAppend = f"Appended data for {currentStation} on {self.line} at {datetime.now()}"
-                            print(recentAppend)
-
-                            del self.__currentTrains[currentTrainid]
+                            del self.__currentTrains[
+                                currentTrainid
+                            ]  # deleting the arrived train from the trains being tracked
                 time.sleep(10)
         except Exception as e:
             print(e)
@@ -94,7 +104,9 @@ class tfl_dataCollector:
     def database_appender(self, predictedTime, actualTime, difference, station):
         measurementName = f'{self.line}_{station.replace(" ","")}'
         crowdingValue = self.crowding_api.get_data(station=station)
-        statusSeverityDictionary = self.status_collector()
+        statusSeverityDictionary = (
+            self.status_collector()
+        )  # status collector is only called when an append is made to minimise calls
         statusSeverityValue = statusSeverityDictionary[self.line]
 
         writeData = (
@@ -114,14 +126,14 @@ class tfl_dataCollector:
     def status_collector(self):
         status_api = get_statusseverity()
         currentStatusDictionary = status_api.get_data()
-        del status_api  # only keeping API for as long as we need it to get data
+        del status_api  # only keeping API for as long as we need it to get data (optimising memory)
         return currentStatusDictionary
 
 
 def runStatusUpdater():
     while True:
         try:
-            isRunningMessage = f"The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads. {recentAppend}"
+            isRunningMessage = f"The current time is {datetime.now()}. The program is currently running {threading.active_count()} threads."
             isRunningwebhook = DiscordWebhook(
                 url="https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn",
                 content=isRunningMessage,
