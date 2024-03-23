@@ -1,25 +1,22 @@
 """database token and cpu processes configured for raspberry pi on this file"""
+
 """this code is obsolete, and has since been replaced by dataCollecterOptimised.
 - Keeping this code as a proof of concept
 - this code is intended to be in the project folder
 """
 
 import concurrent.futures
-from datetime import datetime, timedelta
 import json
 import os
+import sys
 import threading
 import time
-import sys
-from discord_webhook import (
-    DiscordWebhook,
-)  # webhooks used for monitoring of data collection to ensure it is still running.
+from datetime import datetime, timedelta
 
-
-from influxdb_client import Point, InfluxDBClient
+from core.tfl import get_crowdingdata, get_statusseverity, get_tflstation
+from discord_webhook import DiscordWebhook
+from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-
-from core.tfl import get_tflstation, get_crowdingdata, get_statusseverity
 
 url = "http://localhost:8086"
 org = "Ghar"
@@ -163,7 +160,9 @@ def runStatusUpdater():
             )
             isRunningwebhook.execute()
             time.sleep(600)
-        except Exception as e:  # if it errors wait a few seconds and try again until it works
+        except (
+            Exception
+        ) as e:  # if it errors wait a few seconds and try again until it works
             errorWebhook = DiscordWebhook(
                 url="https://discord.com/api/webhooks/1195117811303981197/BP2YNLMv5EQeM_ZEnY9wvv992dONJPVf-hGae9CtHO0Eu-qXF9K9F3FjRUrcLPTZz5Sn",
                 content=f"crashed: {e}",
