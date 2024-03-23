@@ -5,15 +5,17 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "name": "Python: FastAPI",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "cwd": "${workspaceFolder}/project",
             "args": [
                 "main:app",
-                "--reload"
+                "--reload",
+
             ],
             "jinja": true,
             "justMyCode": true

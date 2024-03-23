@@ -746,3 +746,43 @@
 2024-03-18 11:33:54 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/piccadilly/Arrivals/940GZZLUKSX?app_key=4a80bcf6764d437ea5c4fe9cf2e134de
 2024-03-18 11:33:54 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/victoria/Arrivals/940GZZLUKSX?app_key=0ed20d25b4b74edbb330d875bbe783ba
 2024-03-18 11:33:54 - main - INFO - Server received marker click data for {'station': "King's Cross St. Pancras Underground Station", 'linesServed': ['Circle', 'Hammersmith-city', 'Metropolitan', 'Northern', 'Piccadilly', 'Victoria'], 'nextArrivals': {'circle': {'Edgware Road (Circle)': 92}, 'hammersmith-city': {'Hammersmith': 183, 'Barking': 392}, 'metropolitan': {'Chesham': 572, 'Aldgate': 272, 'Uxbridge': 92}, 'northern': {'Morden via Bank': 48, 'Mill Hill East via Bank': 817, 'High Barnet via Bank': 157, 'Edgware via Bank': 337}, 'piccadilly': {'Heathrow via T4 Loop': 46, 'Northfields': 392, 'Cockfosters': 62, 'Rayners Lane': 1592, 'Uxbridge': 932, 'Arnos Grove': 872, 'Heathrow T123 + 5': 1052}, 'victoria': {'Walthamstow Central': 49, 'Brixton': 41}}}
+2024-03-21 09:02:26 - core.tfl - INFO - LOADED TFL STATION ARRIVALS API
+2024-03-21 09:02:28 - main - INFO - Root page loaded
+2024-03-21 09:03:10 - main - INFO - Station data requested by front end
+2024-03-21 09:03:12 - main - INFO - Root page loaded
+2024-03-21 09:03:12 - main - INFO - Station data requested by front end
+2024-03-21 09:03:13 - main - INFO - Root page loaded
+2024-03-21 09:03:13 - main - INFO - Station data requested by front end
+2024-03-21 09:03:18 - main - INFO - Root page loaded
+2024-03-21 09:03:22 - main - INFO - Station data requested by front end
+2024-03-21 09:03:45 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals/940GZZLUNBP?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-21 09:03:45 - main - INFO - Server received marker click data for {'station': 'Newbury Park Underground Station', 'linesServed': ['Central'], 'nextArrivals': {'central': {'Ealing Broadway': 298, 'Hainault via Newbury Park': 298}}}
+2024-03-21 09:03:58 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals/940GZZLUNBP?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-21 09:03:58 - main - INFO - Server received marker click data for {'station': 'Newbury Park Underground Station', 'linesServed': ['Central'], 'nextArrivals': {'central': {'Ealing Broadway': 298, 'Hainault via Newbury Park': 298}}}
+2024-03-21 09:04:23 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/circle/Arrivals/940GZZLUKSX?app_key=4a80bcf6764d437ea5c4fe9cf2e134de
+2024-03-21 09:04:24 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/hammersmith-city/Arrivals/940GZZLUKSX?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-21 09:04:24 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/metropolitan/Arrivals/940GZZLUKSX?app_key=4a80bcf6764d437ea5c4fe9cf2e134de
+2024-03-21 09:04:25 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/northern/Arrivals/940GZZLUKSX?app_key=4a80bcf6764d437ea5c4fe9cf2e134de
+2024-03-21 09:04:25 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/piccadilly/Arrivals/940GZZLUKSX?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-21 09:04:25 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/victoria/Arrivals/940GZZLUKSX?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-21 09:04:25 - main - INFO - Server received marker click data for {'station': "King's Cross St. Pancras Underground Station", 'linesServed': ['Circle', 'Hammersmith-city', 'Metropolitan', 'Northern', 'Piccadilly', 'Victoria'], 'nextArrivals': {'circle': {'Edgware Road (Circle)': 178}, 'hammersmith-city': {'Hammersmith': 118, 'Barking': 358}, 'metropolitan': {'Aldgate': 87, 'Watford': 206, 'Uxbridge': 477}, 'northern': {'Morden via Bank': 57, 'Edgware via Bank': 656, 'Golders Green via Bank': 1257, 'High Barnet via Bank': 416, 'Mill Hill East via Bank': 296}, 'piccadilly': {'Heathrow via T4 Loop': 236, 'Northfields': 26, 'Rayners Lane': 1075, 'Cockfosters': 85, 'Heathrow T123 + 5': 536, 'Uxbridge': 715, 'Arnos Grove': 536}, 'victoria': {'Walthamstow Central': 20, 'Brixton': 19}}}
+2024-03-21 09:23:06 - core.tfl - INFO - LOADED TFL STATION ARRIVALS API
+2024-03-21 17:07:20 - core.tfl - INFO - LOADED TFL STATION ARRIVALS API
+2024-03-21 17:11:02 - core.tfl - INFO - LOADED TFL STATION ARRIVALS API
+2024-03-21 17:16:17 - main - INFO - Root page loaded
+2024-03-21 17:16:18 - main - INFO - Station data requested by front end
+2024-03-21 17:16:22 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/jubilee/Arrivals/940GZZLUNGW?app_key=4a80bcf6764d437ea5c4fe9cf2e134de
+2024-03-21 17:16:22 - main - INFO - Server received marker click data for {'station': 'North Greenwich Underground Station', 'linesServed': ['Jubilee'], 'nextArrivals': {'jubilee': {'Stanmore': 133, 'Stratford': 73}}}
+2024-03-21 17:16:29 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/central/Arrivals/940GZZLUTCR?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-21 17:16:29 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/northern/Arrivals/940GZZLUTCR?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-21 17:16:29 - main - INFO - Server received marker click data for {'station': 'Tottenham Court Road Underground Station', 'linesServed': ['Central', 'Northern'], 'nextArrivals': {'central': {'Epping': 16, 'West Ruislip': 316, 'Hainault via Newbury Park': 496, 'Ealing Broadway': 166}, 'northern': {'Battersea via CX': 155, 'Morden via CX': 605, 'Edgware via CX': 545, 'Mill Hill East via CX': 425, 'Kennington via CX': 305}}}
+2024-03-21 17:16:59 - core.tfl - INFO - LOADED TFL STATION ARRIVALS API
+2024-03-22 09:24:48 - core.tfl - INFO - LOADED TFL STATION ARRIVALS API
+2024-03-22 09:24:48 - main - INFO - Root page loaded
+2024-03-22 09:24:48 - main - INFO - Station data requested by front end
+2024-03-22 09:24:51 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/northern/Arrivals/940GZZLULSQ?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-22 09:24:52 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/piccadilly/Arrivals/940GZZLULSQ?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-22 09:24:52 - main - INFO - Server received marker click data for {'station': 'Leicester Square Underground Station', 'linesServed': ['Northern', 'Piccadilly'], 'nextArrivals': {'northern': {'Battersea via CX': 496, 'High Barnet via CX': 76, 'Kennington via CX': 226, 'Mill Hill East via CX': 916, 'Morden via CX': 1396}, 'piccadilly': {'Cockfosters': 224, 'Arnos Grove': 104, 'Rayners Lane': 1274, 'Northfields': 44, 'Oakwood': 615, 'Heathrow T123 + 5': 134, 'Heathrow via T4 Loop': 374, 'Uxbridge': 494}}}
+2024-03-22 09:25:06 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/district/Arrivals/940GZZLUEHM?app_key=4a80bcf6764d437ea5c4fe9cf2e134de
+2024-03-22 09:25:07 - core.utils - INFO - REQUESTED DATA FROM https://api.tfl.gov.uk/Line/hammersmith-city/Arrivals/940GZZLUEHM?app_key=0ed20d25b4b74edbb330d875bbe783ba
+2024-03-22 09:25:07 - main - INFO - Server received marker click data for {'station': 'East Ham Underground Station', 'linesServed': ['District', 'Hammersmith-city'], 'nextArrivals': {'district': {'Upminster': 37, 'Richmond': 997, 'Ealing Broadway': 37, 'Wimbledon': 337, 'Barking': 1537}, 'hammersmith-city': {'Hammersmith': 211, 'Barking': 360}}}
