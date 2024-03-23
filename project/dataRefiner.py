@@ -64,6 +64,7 @@ def rawDataLoader():
     return outputpl
 
 
+# adds the hourly precipitation and apparent temperature for each datapoint to the datapoint
 def weatherAppender(rawdata):
     weatherPath = os.path.join("data", "weatherdata.csv")
     weatherpl = polars.read_csv(weatherPath)
@@ -94,6 +95,7 @@ def weatherAppender(rawdata):
     return weatheredData
 
 
+# adds the latitude and longitude for the station of each datapoint to the datapoint
 def geoDataAppender(rawdata):
     geoPath = os.path.join("data", "stationLocRaw.csv")
     geopl = polars.read_csv(geoPath)
@@ -107,7 +109,7 @@ def geoDataAppender(rawdata):
         ).strip()  # cleaning station names to match station names in csv file
         station = station.replace(
             "-Underground", ""
-        ).strip()  # for reasons unbenknownst to me, some statiosn have '-Underground' rather than ' Underground Station' at the end...
+        ).strip()  # for reasons unbenknownst to me, some stations have '-Underground' rather than ' Underground Station' at the end...
         print(station)
 
         georow = geopl.row(
@@ -127,7 +129,9 @@ def geoDataAppender(rawdata):
     return geodData
 
 
-"""station line encoding may not be used, instead using one-hot/multi-hot encoding when normalising the data before feeding it to the ML model"""
+"""station line encoding may not be used
+instead using one-hot/multi-hot encoding when
+normalising the data before feeding it to the ML model"""
 
 
 def station_lineEncoder(
@@ -174,6 +178,8 @@ def station_lineEncoder(
     return finalData
 
 
+# groups the time into half-hour intervals (bucketizes it) and also
+# acquiring and appending the day of the week from the date
 def dateTimeConvertor(rawdata):
     appendCols = {"day": [], "time": []}
     rawIterator = rawdata.iter_rows(named=True)
@@ -187,8 +193,8 @@ def dateTimeConvertor(rawdata):
         # getting the hour and minute values using regex
         minuteSearch = re.search(pattern=r":\d+:", string=strtime)
         hourSearch = re.search(pattern=r"\d+:", string=strtime)
-        minuteInt = int(minuteSearch.group().strip(":"))  # type: ignore
-        hourStr = hourSearch.group().strip(":")  # type: ignore
+        minuteInt = int(minuteSearch.group().strip(":"))
+        hourStr = hourSearch.group().strip(":")
         interval = 30  # currently groups into 30-minute groups. adjust this by changing this number (if needed)
         minStr = str((minuteInt // interval) * interval).ljust(
             2, "0"
