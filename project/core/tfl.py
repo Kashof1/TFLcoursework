@@ -39,7 +39,7 @@ class app_keyAppender:
                     targeturl = f"{url}?app_key={keylist[index]}"
                     data = get_url(targeturl)
                     return data
-                except:
+                except Exception as e:
                     pass
 
             if (
