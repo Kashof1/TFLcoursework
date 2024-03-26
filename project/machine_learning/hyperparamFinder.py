@@ -9,7 +9,6 @@ import tensorflow as tf
 from keras import Layer, activations, layers
 
 
-# error likely in this function
 @keras.saving.register_keras_serializable()
 class kerasSqueezeLayer(Layer):
     def __init__(self, vocab_size, **kwargs):
