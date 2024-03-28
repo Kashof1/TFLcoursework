@@ -2,10 +2,17 @@ import json
 import logging
 import os
 import random
+import sys
 import time
 from urllib.error import HTTPError
 
-from core.utils import get_url
+currentRoot = os.path.abspath(
+    os.path.dirname(__file__)
+)  # getting absolute path leading to current file
+sys.path.append(
+    currentRoot
+)  # adding abs path to sys so abs import can be used between files in the same folder
+from utils import get_url
 
 log = logging.getLogger(__name__)
 
