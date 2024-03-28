@@ -220,8 +220,3 @@ class get_statusseverity(app_keyAppender):
                     total += each["statusSeverity"]
                 statusDict[currentLine] = total / numOfReports
         return statusDict
-
-
-if __name__ == "__main__":
-    test = get_statusseverity()
-    print(test.get_data())
