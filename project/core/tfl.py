@@ -97,7 +97,6 @@ class get_tflstation(app_keyAppender):
 
     def get_next_unique_trains(self, line: str, station: str):
         # this function will get the next train for each unique 'destination' in the API call
-        station, line = self.validate_option(station=station, line=line)
         data = self.get_data(line=line, station=station)
         output = {}  # station:time
         for prediction in data:
