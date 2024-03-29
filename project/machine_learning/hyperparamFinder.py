@@ -7,6 +7,7 @@ import pandas as pd
 import tensorboard
 import tensorflow as tf
 from keras import Layer, activations, layers
+from keras_tuner import HyperModel
 
 
 @keras.saving.register_keras_serializable()
@@ -192,38 +193,45 @@ def input_layers_builder():
     )
 
 
-# this is the hyperparameters model-building and search space
-def model_builder(hp):
-    x = keras.layers.concatenate(
-        inputs=encoded_input_layers, name="input_formattting_layer"
-    )  # input formatting layer
+# search space in which the hyperparameter tuner builds the model
+class myHyperModel(HyperModel):
+    def __init__(self, encoded_input_layers, raw_input_layers):
+        self.encoded_input_layers = encoded_input_layers
+        self.raw_input_layers = raw_input_layers
 
-    for layerNumber in range(hp.Int("layer_num", 3, 6)):
-        x = layers.Dense(
-            units=hp.Int(
-                f"units{layerNumber}", min_value=500, max_value=5000, step=500
-            ),
-            activation=hp.Choice("activation", ["linear", "tanh"]),
-        )(x)
+    def build(self, hp):
+        x = keras.layers.concatenate(
+            inputs=self.encoded_input_layers, name="input_formattting_layer"
+        )  # input formatting layer
 
-    if hp.Boolean("dropout"):
-        x = layers.Dropout(
-            rate=hp.Float(
-                "dropoutRate", min_value=0.001, max_value=0.1, sampling="log"
-            ),
-            name="dropoutLayer",
-        )(x)
+        for layerNumber in range(hp.Int("layer_num", 3, 6)):
+            x = layers.Dense(
+                units=hp.Int(
+                    f"units{layerNumber}", min_value=500, max_value=5000, step=500
+                ),
+                activation=hp.Choice("activation", ["linear", "tanh"]),
+            )(x)
 
-    outputLayer = layers.Dense(units=1)(x)
+        if hp.Boolean("dropout"):
+            x = layers.Dropout(
+                rate=hp.Float(
+                    "dropoutRate", min_value=0.001, max_value=0.1, sampling="log"
+                ),
+                name="dropoutLayer",
+            )(x)
 
-    learn_rate = hp.Float("learn_rate", min_value=0.0001, max_value=0.1, sampling="log")
-    model = keras.Model(raw_input_layers, outputLayer)
-    model.compile(
-        optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
-        loss=keras.losses.mean_squared_error,
-        metrics=[keras.metrics.mean_absolute_error],
-    )
-    return model
+        outputLayer = layers.Dense(units=1)(x)
+
+        learn_rate = hp.Float(
+            "learn_rate", min_value=0.0001, max_value=0.1, sampling="log"
+        )
+        model = keras.Model(self.raw_input_layers, outputLayer)
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
+            loss=keras.losses.mean_squared_error,
+            metrics=[keras.metrics.mean_absolute_error],
+        )
+        return model
 
 
 if __name__ == "__main__":
@@ -241,12 +249,14 @@ if __name__ == "__main__":
         log_dir=log_dir, histogram_freq=0
     )
 
+    model_building_space = myHyperModel(encoded_input_layers=encoded_input_layers)
+
     tuner = kt.Hyperband(
-        hypermodel=model_builder,
+        hypermodel=model_building_space,
         objective="val_mean_absolute_error",
         max_epochs=20,
-        directory="hyperTuning",
-        project_name="functional_model_Hyperband2",
+        directory="machine_learning/hyperTuning",
+        project_name="functional_model_Hyperband",
         overwrite=False,
     )
 
@@ -272,6 +282,23 @@ if __name__ == "__main__":
     newbest = keras.models.load_model("bestmodel.keras")
     [(x, y)] = testing_dataset.take(1)
     predictions = newbest.predict(x)
+    y = list(y)
+    predictions = list(predictions)
+    for each in range(len(predictions)):
+        print(predictions[each], y[each])
+
+    besttrial = tuner.oracle.get_best_trials()[0]
+    newwmod = tuner.hypermodel.build(besttrial.hyperparameters)
+    newwmod.summary()
+    newwmod.fit(
+        training_dataset,
+        epochs=15,
+        callbacks=[early_callback, tensorboard_callback],
+        validation_data=validating_dataset,
+    )
+
+    [(x, y)] = testing_dataset.take(1)
+    predictions = newwmod.predict(x)
     y = list(y)
     predictions = list(predictions)
     for each in range(len(predictions)):
