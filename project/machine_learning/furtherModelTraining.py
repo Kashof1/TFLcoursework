@@ -8,6 +8,8 @@ import os
 
 import keras
 import keras_tuner as kt
+import pandas as pd
+import tensorflow as tf
 from hyperparamFinder import input_layers_builder, myHyperModel
 from keras import backend as K
 
@@ -43,17 +45,81 @@ early_callback = keras.callbacks.EarlyStopping(
 
 besttrial = tuner.oracle.get_best_trials()[0]
 model = tuner.hypermodel.build(besttrial.hyperparameters)
-
-model.fit(
+print(model.input_shape)
+print(testing_dataset)
+"""model.fit(
     training_dataset,
-    epochs=15,
+    epochs=3,
     callbacks=[early_callback, tensorboard_callback],
     validation_data=validating_dataset,
 )
 
-[(x, y)] = testing_dataset.take(1)
-predictions = model.predict(x)
+export_archive = keras.export.ExportArchive()
+export_archive.track(model)
+export_archive.add_endpoint(
+    name='infer',
+    fn=model.call,
+    input_signature=[
+        {
+            "station" : tf.TensorSpec(shape=(None, 1), dtype=tf.string),
+            "line" : tf.TensorSpec(shape=(None, 1), dtype=tf.string),
+            "time" : tf.TensorSpec(shape=(None, 1), dtype=tf.string),
+            "day": tf.TensorSpec(shape=(None, 1), dtype=tf.int64),
+            "crowding" : tf.TensorSpec(shape=(None, 1), dtype=tf.float64),
+            "appTemperature": tf.TensorSpec(shape=(None, 1), dtype=tf.float64),
+            "statusSeverity": tf.TensorSpec(shape=(None, 1), dtype=tf.float64),
+            "precipitation": tf.TensorSpec(shape=(None, 1), dtype=tf.float64),
+            "latitude": tf.TensorSpec(shape=(None, 1), dtype=tf.float64),
+            "longitude": tf.TensorSpec(shape=(None, 1), dtype=tf.float64)
+        }
+    ]
+)
+
+export_archive.write_out('testpathh')"""
+ser = tf.saved_model.load("testpathh")
+"""[(x,y)] = testing_dataset.take(1)
+output = ser.infer(x)
 y = list(y)
-predictions = list(predictions)
-for each in range(len(predictions)):
-    print(predictions[each], y[each])
+for each in range(len(y)):
+    print (output[each], y[each])
+"""
+input = {
+    "station": "Hainault Underground Station",
+    "line": "central",
+    "crowding": 0.120543,
+    "time": "13:30:00",
+    "latitude": 51.603137,
+    "longitude": 0.095144,
+    "appTemperature": 2.8,
+    "precipitation": 0.9,
+    "statusSeverity": 9.7,
+    "day": 5,
+}
+
+finalInput = {}
+for key, value in input.items():
+    if isinstance(value, str):
+        # Convert string to tf.string and reshape
+        tensor = tf.convert_to_tensor(value, dtype=tf.string)
+        tensor = tf.reshape(tensor, (-1, 1))
+    elif isinstance(value, int):
+        # Convert integer to tf.int64 and reshape
+        tensor = tf.convert_to_tensor(value, dtype=tf.int64)
+        tensor = tf.reshape(tensor, (-1, 1))
+    elif isinstance(value, float):
+        # Convert float to tf.float64 and reshape
+        tensor = tf.convert_to_tensor(value, dtype=tf.float64)
+        tensor = tf.reshape(tensor, (-1, 1))
+    else:
+        raise ValueError(f"Unsupported data type for key '{key}'")
+
+    finalInput[key] = tensor
+
+"""input = pd.DataFrame([input])
+input = {
+    key: value.values[:, tf.newaxis] for key, value in input.items()
+}
+input = tf.data.Dataset.from_tensor_slices(input)"""
+
+output = ser.infer(finalInput)
+print(output)
