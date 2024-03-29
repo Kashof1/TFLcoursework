@@ -12,17 +12,19 @@ class getWeather:
         self.base_url = (
             "https://api.open-meteo.com/v1/forecast?latitude=51.5085&longitude=-0.1257"
         )
+        self.valid_options = ["apparent_temperature", "precipitation"]
 
-    def get_current_temperature(self):
-        # getting current APPARENT temperature from open-meteo through URL
-        request_url = f"{self.base_url}&current=apparent_temperature"
+    def get_weather_item(self, item: str):
+        option = self.validate_option(item)
+        request_url = f"{self.base_url}&current={option}"
         response = get_url(url=request_url)
-        temperature = response["current"]["apparent_temperature"]
-        return temperature
+        val = response["current"][option]
+        return val
 
-    def get_current_precip(self):
-        # getting current precipitation from open-meteo through URL
-        request_url = f"{self.base_url}&current=precipitation"
-        response = get_url(url=request_url)
-        precip = response["current"]["precipitation"]
-        return precip
+    def validate_option(self, option: str):
+        if option in self.valid_options:
+            return option
+        else:
+            raise ValueError(
+                f"Selected weather event to get data for is not in the list of supported events. The supported events are: {self.valid_options}"
+            )
