@@ -11,7 +11,7 @@ from core.utils import get_url
 from geojson import Feature, FeatureCollection, Point, dump
 
 
-def stationNaptanUpdater():
+def stationNaptanUpdater():  # updates the file containing station names and their associated naptanids
     final = {}
     lines = get_url("https://api.tfl.gov.uk/line/mode/tube/status")
     for line in lines:
@@ -27,7 +27,7 @@ def stationNaptanUpdater():
         json.dump(final, outputfile)
 
 
-def stationLineCombinationUpdater():
+def stationLineCombinationUpdater():  # updates the file that describes what lines each station serves
     final = []
     lines = get_url("https://api.tfl.gov.uk/line/mode/tube/status")
     for line in lines:
@@ -46,7 +46,7 @@ def stationLineCombinationUpdater():
         json.dump(final, outputfile)
 
 
-def stationLocationJson():
+def stationLocationJson():  # processes the raw station locations downloaded from the internet and saves to a new file
     featurearray = []
     sourceFilepath = os.path.join("data", "stationLocRaw.csv")
     destFilepath = os.path.join("data", "stationsgeo.json")
@@ -63,22 +63,12 @@ def stationLocationJson():
                     "zone": each["Zone"],
                 }
                 featurearray.append(Feature(geometry=geometry, properties=properties))
+    # formattign as a featurecollection for later use with leafletjs
     featurecollection = FeatureCollection(featurearray)
     with open(destFilepath, "w") as destination:
         dump(obj=featurearray, fp=destination)
 
 
 if __name__ == "__main__":
-    stationLocationJson()
-    """while True:
-        decision = int(input('Enter 1 to update the stations and their naptanIDs, enter 2 to update the station-line combinations, enter 3 to break'))
-        if decision == 1:
-            stationNaptanUpdater()
-            break
-        elif decision == 2:
-            stationLineCombinationUpdater()
-            break
-        elif decision == 3:
-            break
-        else:
-            print ('Invalid input, try again')"""
+    # call one of the scripts here to execute it
+    pass
