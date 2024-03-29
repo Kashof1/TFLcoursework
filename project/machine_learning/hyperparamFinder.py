@@ -244,7 +244,7 @@ if __name__ == "__main__":
         validating_dataset,
     ) = input_layers_builder()
 
-    log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = "machine_learning/logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=0
     )
