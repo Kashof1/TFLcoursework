@@ -85,18 +85,19 @@ class get_tflstation(app_keyAppender):
             self.dictofoptions = json.load(file)
 
     def get_data(self, line: str, station: str):
-        stationID, line = self.validate_option(line, station)
-        if len(stationID) == 0 or len(line) == 0:
+        stationID, line = self.validate_option(station=station, line=line)
+        '''if len(stationID) == 0 or len(line) == 0:
             log.info(
                 f"Invalid option(s) provided to get_tflstation instance. Options provided were {line} and {station}"
             )
-            return "No valid options provided"
+            return "No valid options provided"'''
         url = f"{self.base_url}{line}/Arrivals/{stationID}"
         data = self.dataFetcher(url=url)
         return data
 
     def get_next_unique_trains(self, line: str, station: str):
         # this function will get the next train for each unique 'destination' in the API call
+        station, line = self.validate_option(station=station, line=line)
         data = self.get_data(line=line, station=station)
         output = {}  # station:time
         for prediction in data:
@@ -124,7 +125,12 @@ class get_tflstation(app_keyAppender):
         if line not in self.arrayofoptions:
             valid = False
 
-        return (stationID, line) if valid == True else ("", "")
+        if valid == True:
+            return (stationID, line)
+        else:
+            raise ValueError(
+                f"The selected station ({station}) or line ({line}) are not supported"
+            )
 
 
 class get_tflline(app_keyAppender):
@@ -150,14 +156,15 @@ class get_tflline(app_keyAppender):
 
     def get_data(self):
         self.line = self.validate_options(option=self.line)
-        if len(self.line) == 0:
-            return "No options provided"
         url = f"{self.base_url}{self.line}/Arrivals"
         data = self.dataFetcher(url=url)
         return data
 
     def validate_options(self, option: str):
-        return option if option in self.arrayofoptions else ""
+        if option in self.arrayofoptions:
+            return option
+        else:
+            raise ValueError(f"The selected line ({line}) is not supported")
 
 
 class get_crowdingdata(app_keyAppender):
@@ -185,7 +192,10 @@ class get_crowdingdata(app_keyAppender):
         else:
             valid = False
 
-        return stationID if valid == True else ""
+        if valid == True:
+            return stationID
+        else:
+            raise ValueError(f"The selected station ({station}) is not supported")
 
 
 class get_statusseverity(app_keyAppender):
