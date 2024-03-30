@@ -94,7 +94,8 @@
       stationTitle.innerHTML = responseVal['station'];
 
       const linesServed = responseVal['linesServed'];
-      const nextArrivals = responseVal['nextArrivals']
+      const nextArrivals = responseVal['nextArrivals'];
+      const predictionDict = responseVal['predictionDict']
 
       //getting offcanvas and deleting accordion
       //this only works because offcanvas has a single child (THE MAIN ACCORDION BODY)
@@ -147,15 +148,15 @@
         body.setAttribute("id", `body${line}`);
 
         //creating the list of soonest arrival times for each terminal station
-
-        let finalInput = ""
+        const delayp = predictionDict[line.toLowerCase()];
+        let finalInput = `<h3>Trains on this line are currently predicted to be ${delayp}</h3><br><br>`;
         for (let terminus of Object.keys(lineArrivals)){
           const minutes = Math.floor(lineArrivals[terminus] / 60); //the minutes of the time prediction using floor div
           const seconds = lineArrivals[terminus] % 60;
           finalInput = finalInput + `The next train for <strong>${terminus}</strong> is arriving in ${minutes} minutes and ${seconds} seconds<br><br>`
         };
-
-        body.innerHTML = finalInput
+        console.log(finalInput)
+        body.innerHTML = finalInput;
 
         header.appendChild(button);
         collapse.appendChild(body);
