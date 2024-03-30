@@ -136,7 +136,7 @@ class get_tflstation(app_keyAppender):
 
         # using imported functions in order to keep data formatting consistent for inference
         processedTime = time_bucketizer(date_time=currentTime)
-        processedDay = date_bucketizer(date_time=currentTime)
+        processedDay = int(date_bucketizer(date_time=currentTime))
 
         geoPath = os.path.join("data", "stationLocRaw.csv")
         geoPolars = pl.read_csv(geoPath)
@@ -171,11 +171,9 @@ class get_tflstation(app_keyAppender):
 
         dataframe = pd.DataFrame(inferenceData)
         dataset = pandas_to_dataset(dataframe, batch_size=2)
-        [(modelinput, _)] = ds.take(1)
+        [(modelinput, _)] = dataset.take(1)
         prediction = self.model.predict(modelinput)
-
-        print(inferenceData)
-        print(prediction)
+        prediction = float(prediction[0][0])
 
         return prediction
 
