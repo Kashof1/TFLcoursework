@@ -18,3 +18,5 @@ project/__pycache__/main.cpython-311.pyc
 project/machine_learning/hyperTuning
 project/machine_learning/logs
 project/machine_learning/__pycache__/hyperparamFinder.cpython-311.pyc
+project/__pycache__/dataRefiner.cpython-311.pyc
+project/log.txt
