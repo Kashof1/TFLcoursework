@@ -9,14 +9,6 @@ import polars
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-bucket = "TFLBucket"
-url = "http://localhost:8086"
-org = "Ghar"
-token = "_WLF5xavdkGh95hlk0d4-obeE9GgfA6TDYYbMLTMOUyz2MqBaUZBOpG6hElvUR-wec0p---x2p7Mn66KuE0CQQ=="  # superuser token
-dbclient = InfluxDBClient(url=url, org=org, token=token)
-write_api = dbclient.write_api(write_options=SYNCHRONOUS)
-query_api = dbclient.query_api()
-
 
 def rawDataLoader():
     # making a list of all the measurement names (statin line combos) so that we can query all of them from the database
@@ -95,6 +87,28 @@ def weatherAppender(rawdata):
     return weatheredData
 
 
+def lat_long_fetcher(station: str, geoPolars: polars.DataFrame):
+    station = station.replace(
+        "Underground Station", ""
+    ).strip()  # cleaning station names to match station names in csv file
+    station = station.replace(
+        "-Underground", ""
+    ).strip()  # for reasons unbenknownst to me, some stations have '-Underground' rather than ' Underground Station' at the end...
+    print(station)
+
+    georow = geoPolars.row(
+        by_predicate=(
+            (polars.col("NAME") == station)
+            & (polars.col("NETWORK") == "London Underground")
+        ),
+        named=True,
+    )
+    latitude = georow["y"]
+    longitude = georow["x"]
+
+    return (latitude, longitude)
+
+
 # adds the latitude and longitude for the station of each datapoint to the datapoint
 def geoDataAppender(rawdata):
     geoPath = os.path.join("data", "stationLocRaw.csv")
@@ -104,23 +118,10 @@ def geoDataAppender(rawdata):
 
     for row in rawIterator:
         station = row["station"]
-        station = station.replace(
-            "Underground Station", ""
-        ).strip()  # cleaning station names to match station names in csv file
-        station = station.replace(
-            "-Underground", ""
-        ).strip()  # for reasons unbenknownst to me, some stations have '-Underground' rather than ' Underground Station' at the end...
-        print(station)
+        (latitude, longitude) = lat_long_fetcher(station=station, geoPolars=geopl)
 
-        georow = geopl.row(
-            by_predicate=(
-                (polars.col("NAME") == station)
-                & (polars.col("NETWORK") == "London Underground")
-            ),
-            named=True,
-        )
-        geoColumn["latitude"].append(georow["y"])
-        geoColumn["longitude"].append(georow["x"])
+        geoColumn["latitude"].append(latitude)
+        geoColumn["longitude"].append(longitude)
 
     geodData = rawdata.with_columns(
         polars.Series(name="latitude", values=geoColumn["latitude"]),
@@ -227,6 +228,14 @@ def dateTimeConvertor(rawdata):
 
 
 if __name__ == "__main__":
+    bucket = "TFLBucket"
+    url = "http://localhost:8086"
+    org = "Ghar"
+    token = "_WLF5xavdkGh95hlk0d4-obeE9GgfA6TDYYbMLTMOUyz2MqBaUZBOpG6hElvUR-wec0p---x2p7Mn66KuE0CQQ=="  # superuser token
+    dbclient = InfluxDBClient(url=url, org=org, token=token)
+    write_api = dbclient.write_api(write_options=SYNCHRONOUS)
+    query_api = dbclient.query_api()
+
     rawdata = rawDataLoader()
     geodata = geoDataAppender(rawdata=rawdata)
     weatherData = weatherAppender(rawdata=geodata)
