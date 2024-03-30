@@ -36,6 +36,7 @@ class MarkerResponse(BaseModel):
     station: str
 
 
+# fixes station names where it has an 'S such as King's Cross Station
 def station_S_rectifier(string):
     searchStr = r"'S"
     matchobj = re.search(
@@ -65,15 +66,14 @@ def get_markerStationResponse(request: Request, markerresponse: MarkerResponse):
         each[0].capitalize() for each in stationdata if each[1] == stationName
     ]
     stationName = stationName.title()
+    # outlier case due to hyphen
     if returnedStation == "Paddington (H&C Line)":
         stationName = "Paddington (H&C Line)-Underground"
-
     rectifiedString = station_S_rectifier(string=stationName)
     stationName = stationName if rectifiedString == False else rectifiedString
 
-    # ALL NAMES WITH APOSTROPHES NEED TO BE FIXED (issue with .title())
-
     arrivalsDict = {}
+    predictionDict = {}
     for line in linesServed:
         line = line.lower()
         lineArrivals = next_trains_api.get_next_unique_trains(
@@ -81,10 +81,16 @@ def get_markerStationResponse(request: Request, markerresponse: MarkerResponse):
         )
         arrivalsDict[line] = lineArrivals
 
+        delayPrediction = next_trains_api.inferDelayPrediction(
+            line=line, station=stationName
+        )
+        predictionDict[line] = delayPrediction
+
     data = {
         "station": stationName,
         "linesServed": linesServed,
         "nextArrivals": arrivalsDict,
+        "predictionDict": predictionDict,
     }
     log.info(f"Server received marker click data for {data}")
 
