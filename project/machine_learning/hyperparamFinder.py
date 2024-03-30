@@ -32,15 +32,6 @@ class kerasSqueezeLayer(Layer):
         return cls(**config)
 
 
-@keras.saving.register_keras_serializable()
-class kerasConcatenateLayer(Layer):
-    def __init__(self, **kwargs):
-        super(kerasConcatenateLayer, self).__init__(**kwargs)
-
-    def call(self, x):
-        return keras.layers.concatenate(x)
-
-
 def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
     labels = pdframe.pop("timeDiff").astype("float32")
     pdframe = {
@@ -200,6 +191,7 @@ class myHyperModel(HyperModel):
         self.raw_input_layers = raw_input_layers
 
     def build(self, hp):
+
         x = keras.layers.concatenate(
             inputs=self.encoded_input_layers, name="input_formattting_layer"
         )  # input formatting layer
