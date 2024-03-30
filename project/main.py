@@ -54,9 +54,11 @@ def format_seconds(raw):
     minutes = raw // 60
     seconds = raw % 60
     if minutes == 1:
-        return f"{minutes} minute and {seconds} seconds"
+        return f"{minutes} minute and {seconds} seconds late"
+    elif minutes < 0:
+        return f"early"
     else:
-        return f"{minutes} minutes and {seconds} seconds"
+        return f"{minutes} minutes and {seconds} seconds late"
 
 
 @app.get("/", response_class=HTMLResponse)
