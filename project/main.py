@@ -50,6 +50,15 @@ def station_S_rectifier(string):
         return False
 
 
+def format_seconds(raw):
+    minutes = raw // 60
+    seconds = raw % 60
+    if minutes == 1:
+        return f"{minutes} minute and {seconds} seconds"
+    else:
+        return f"{minutes} minutes and {seconds} seconds"
+
+
 @app.get("/", response_class=HTMLResponse)
 def mappage(request: Request):
     log.info("Root page loaded")
@@ -84,7 +93,8 @@ def get_markerStationResponse(request: Request, markerresponse: MarkerResponse):
         delayPrediction = next_trains_api.inferDelayPrediction(
             line=line, station=stationName
         )
-        predictionDict[line] = delayPrediction
+        delayOutput = format_seconds(raw=delayPrediction)
+        predictionDict[line] = delayOutput
 
     data = {
         "station": stationName,
@@ -98,6 +108,7 @@ def get_markerStationResponse(request: Request, markerresponse: MarkerResponse):
     return JSONResponse(content=encoded)
 
 
+# used to load and send the geodata/key data for each marker when the front end loads them all
 @app.post("/sendStationData", response_class=JSONResponse)
 def return_stationGeoData(request: Request):
     log.info("Station data requested by front end")
