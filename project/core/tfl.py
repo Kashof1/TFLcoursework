@@ -114,22 +114,27 @@ class get_tflstation(app_keyAppender):
 
         return output
 
+    def inferDelayPrediction(self, line: str, station: str):
+        # validating only the line, as the model takes station NAME for inference
+        # e.g. line = central, station = Hainault Underground Station
+        line = self.validate_line(line=line)
+
     def validate_option(self, line: str, station: str):
-        valid = True
+        line = self.validate_line(line=line)
+        stationID = self.validate_station(station=station)
+        return (stationID, line)
+
+    def validate_line(self, line: str):
+        if line in self.arrayofoptions:
+            return line
+        else:
+            raise ValueError(f"The selected line ({line}) is not supported")
+
+    def validate_station(self, station: str):
         if station in self.dictofoptions:
-            stationID = self.dictofoptions[station]
+            return self.dictofoptions[station]
         else:
-            valid = False
-
-        if line not in self.arrayofoptions:
-            valid = False
-
-        if valid == True:
-            return (stationID, line)
-        else:
-            raise ValueError(
-                f"The selected station ({station}) or line ({line}) are not supported"
-            )
+            raise ValueError(f"The selected station ({station}) is not supported")
 
 
 class get_tflline(app_keyAppender):
