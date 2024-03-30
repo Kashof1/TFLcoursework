@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import os
@@ -5,6 +6,13 @@ import random
 import sys
 import time
 from urllib.error import HTTPError
+
+import keras
+import pandas as pd
+import polars as pl
+from core.weather import getWeather
+from dataRefiner import date_bucketizer, lat_long_fetcher, time_bucketizer
+from machine_learning.hyperparamFinder import pandas_to_dataset
 
 currentRoot = os.path.abspath(
     os.path.dirname(__file__)
@@ -84,6 +92,12 @@ class get_tflstation(app_keyAppender):
         with open(self.directory, "r", encoding="utf8") as file:
             self.dictofoptions = json.load(file)
 
+        # initialising these once, for whenever inference needs to be made
+        self.weatherGetter = getWeather()
+        self.statusGetter = get_statusseverity()
+        self.crowdingGetter = get_crowdingdata()
+        self.model = keras.models.load_model("tflDelayPredictor.keras")
+
     def get_data(self, line: str, station: str):
         stationID, line = self.validate_option(station=station, line=line)
         '''if len(stationID) == 0 or len(line) == 0:
@@ -118,6 +132,52 @@ class get_tflstation(app_keyAppender):
         # validating only the line, as the model takes station NAME for inference
         # e.g. line = central, station = Hainault Underground Station
         line = self.validate_line(line=line)
+        currentTime = datetime.datetime.now()
+
+        # using imported functions in order to keep data formatting consistent for inference
+        processedTime = time_bucketizer(date_time=currentTime)
+        processedDay = date_bucketizer(date_time=currentTime)
+
+        geoPath = os.path.join("data", "stationLocRaw.csv")
+        geoPolars = pl.read_csv(geoPath)
+        (latitude, longitude) = lat_long_fetcher(station=station, geoPolars=geoPolars)
+
+        appTemperature = self.weatherGetter.get_weather_item(
+            item="apparent_temperature"
+        )
+        precipitation = self.weatherGetter.get_weather_item(item="precipitation")
+        crowding = self.crowdingGetter.get_data(station=station)
+        statusDictionary = self.statusGetter.get_data()
+        statusSeverity = statusDictionary[line]
+
+        inferenceData = {
+            "station": station,
+            "line": line,
+            "crowding": crowding,
+            "time": processedTime,
+            "latitude": latitude,
+            "longitude": longitude,
+            "appTemperature": appTemperature,
+            "precipitation": precipitation,
+            "statusSeverity": statusSeverity,
+            "day": processedDay,
+            "timeDiff": -1,  # null value, used to preserve dimensions needed by pandas_to_dataset
+        }
+
+        # KEY CODE: KEEPS DIMENSIONALITY CONSISTENT WITH WHAT MODEL WANTS
+        # MODEL ONLY SUCCESSFULLY INFERS WHEN TAKING BATCHED INPUTS (i.e. > 1 item per field)
+        for each in inferenceData:
+            inferenceData[each] = [inferenceData[each], inferenceData[each]]
+
+        dataframe = pd.DataFrame(inferenceData)
+        dataset = pandas_to_dataset(dataframe, batch_size=2)
+        [(modelinput, _)] = ds.take(1)
+        prediction = self.model.predict(modelinput)
+
+        print(inferenceData)
+        print(prediction)
+
+        return prediction
 
     def validate_option(self, line: str, station: str):
         line = self.validate_line(line=line)
