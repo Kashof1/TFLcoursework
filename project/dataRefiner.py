@@ -178,6 +178,29 @@ def station_lineEncoder(
     return finalData
 
 
+def time_bucketizer(date_time: datetime):
+    """grouping the time into half hour intervals"""
+    strtime = date_time.time().replace(microsecond=0).strftime("%H:%M:%S")
+
+    # getting the hour and minute values using regex
+    minuteSearch = re.search(pattern=r":\d+:", string=strtime)
+    hourSearch = re.search(pattern=r"\d+:", string=strtime)
+    minuteInt = int(minuteSearch.group().strip(":"))
+    hourStr = hourSearch.group().strip(":")
+    interval = 30  # currently groups into 30-minute groups.
+    minStr = str((minuteInt // interval) * interval).ljust(
+        2, "0"
+    )  # numbers between 0-30 return '00', 30-59 return '30', hence grouping into 30m intervals
+    finalTime = f"{hourStr}:{minStr}:00"
+
+    return finalTime
+
+
+def date_bucketizer(date_time: datetime):
+    day = str(date_time.isoweekday())
+    return day
+
+
 # groups the time into half-hour intervals (bucketizes it) and also
 # acquiring and appending the day of the week from the date
 def dateTimeConvertor(rawdata):
@@ -187,25 +210,9 @@ def dateTimeConvertor(rawdata):
     for row in rawIterator:
         oldTime = datetime.strptime(row["predictedTime"], f"%Y-%m-%d %H:%M:%S")
 
-        """grouping the time into half hour intervals"""
-        strtime = oldTime.time().replace(microsecond=0).strftime("%H:%M:%S")
+        finalTime = time_bucketizer(date_time=oldTime)
+        day = date_bucketizer(date_time=oldTime)
 
-        # getting the hour and minute values using regex
-        minuteSearch = re.search(pattern=r":\d+:", string=strtime)
-        hourSearch = re.search(pattern=r"\d+:", string=strtime)
-        minuteInt = int(minuteSearch.group().strip(":"))
-        hourStr = hourSearch.group().strip(":")
-        interval = 30  # currently groups into 30-minute groups. adjust this by changing this number (if needed)
-        minStr = str((minuteInt // interval) * interval).ljust(
-            2, "0"
-        )  # numbers between 0-30 return '00', 30-59 return '30', hence grouping into 30m intervals
-        finalTime = f"{hourStr}:{minStr}:00"
-
-        """day being typecasted to string so it matches all other categorical data in the tensorflow pipeline (makes
-        stuff easier/less dependency on tf processing this way)"""
-        day = str(
-            oldTime.isoweekday()
-        )  # isoweekday would return 1 for Monday and 7 for Sunday
         appendCols["day"].append(day)
         appendCols["time"].append(finalTime)
         print(f"time is {finalTime} and day is {day}")
