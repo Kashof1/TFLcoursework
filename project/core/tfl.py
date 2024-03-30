@@ -172,10 +172,9 @@ class get_tflstation(app_keyAppender):
         dataframe = pd.DataFrame(inferenceData)
         dataset = pandas_to_dataset(dataframe, batch_size=2)
         [(modelinput, _)] = dataset.take(1)
-        prediction = self.model.predict(modelinput)
-        prediction = float(prediction[0][0])
-
-        return prediction
+        rawPred = self.model.predict(modelinput)
+        rawPred = int(rawPred[0][0])  # rounding the prediction to nearest second
+        return rawPred
 
     def validate_option(self, line: str, station: str):
         line = self.validate_line(line=line)
