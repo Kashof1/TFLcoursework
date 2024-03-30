@@ -51,6 +51,7 @@
       'Waterloo-city' : 'RGB(107,205,178)'
     }
 
+    //loading the data needed to build each marker (such as geodata and lines served)
     const data = await fetch("/sendStationData", {
       method: 'POST',
       headers : {'Content-Type' : 'application/json'},
@@ -58,7 +59,6 @@
     .then((response) => response.json());
 
     const offcanvas = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
-    //const offcanvas = bootstrap.Offcanvas.getInstance('#offcanvasPanel'); //getting the offcanvas element
 
     //listener event that resets the map view every time the offcanvas panel is closed
     const off = document.querySelector('#offcanvasPanel')
