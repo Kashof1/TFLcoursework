@@ -128,3 +128,14 @@ def return_stationGeoData(request: Request):
 
     encoded = jsonable_encoder(newdata)
     return JSONResponse(content=encoded)
+
+
+# used to send the line geodata to the front end for it to load them all
+@app.post("/sendLineData", response_class=JSONResponse)
+def return_lineGeoData(request: Request):
+    log.info("Line geodata requested by front end")
+    with open(os.path.join("data", "geoline.json"), "r") as file:
+        data = json.load(file)
+
+    encoded = jsonable_encoder(data)
+    return JSONResponse(content=encoded)
