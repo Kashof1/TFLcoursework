@@ -138,7 +138,7 @@ class get_tflstation(app_keyAppender):
         processedTime = time_bucketizer(date_time=currentTime)
         processedDay = int(date_bucketizer(date_time=currentTime))
 
-        geoPath = os.path.join("data", "stationLocRaw.csv")
+        geoPath = os.path.join("data", "raw", "stationLocRaw.csv")
         geoPolars = pl.read_csv(geoPath)
         (latitude, longitude) = lat_long_fetcher(station=station, geoPolars=geoPolars)
 
