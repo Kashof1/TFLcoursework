@@ -8,7 +8,7 @@ import json
 import os
 
 from core.utils import get_url
-from geojson import Feature, FeatureCollection, Point, dump
+from geojson import Feature, FeatureCollection, LineString, Point, dump
 
 
 def stationNaptanUpdater():  # updates the file containing station names and their associated naptanids
@@ -48,7 +48,7 @@ def stationLineCombinationUpdater():  # updates the file that describes what lin
 
 def stationLocationJson():  # processes the raw station locations downloaded from the internet and saves to a new file
     featurearray = []
-    sourceFilepath = os.path.join("data", "stationLocRaw.csv")
+    sourceFilepath = os.path.join("data", "raw", "stationLocRaw.csv")
     destFilepath = os.path.join("data", "stationsgeo.json")
     with open(sourceFilepath, "r") as csvfile:
         reader = csv.DictReader(csvfile)
@@ -69,6 +69,38 @@ def stationLocationJson():  # processes the raw station locations downloaded fro
         dump(obj=featurearray, fp=destination)
 
 
+def linesGeoJson():  # processes the vectors of all of the lines (removing non-underground data points)
+    featurearray = []
+    lines = [
+        "Bakerloo",
+        "Central",
+        "Circle",
+        "District",
+        "Hammersmith and City",
+        "Jubilee",
+        "Metropolitan",
+        "Northern",
+        "Piccadilly",
+        "Victoria",
+        "Waterloo and City",
+    ]
+    source = os.path.join("data", "raw", "rawlinesgeo.json")
+    dest = os.path.join("data", "geoline.json")
+
+    with open(source, "r") as jsonfile:
+        features = json.load(jsonfile)["features"]
+        for each in features:
+            name = each["properties"]["name"]
+            # names come in formats like "Bakerloo - Marylebone to Baker Street"
+            referencedLine = name.split("-")[0].strip()
+
+            if referencedLine in lines:
+                featurearray.append(each)
+
+    with open(dest, "w") as destination:
+        dump(obj=featurearray, fp=destination)
+
+
 if __name__ == "__main__":
     # call one of the scripts here to execute it
-    pass
+    linesGeoJson()
