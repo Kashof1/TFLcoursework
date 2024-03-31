@@ -58,6 +58,14 @@
     })
     .then((response) => response.json());
 
+    //loading the data for the geography of the lines betweeen stations
+    const linedata = await fetch("/sendLineData", {
+      method: 'POST',
+      headers : {'Content-Type' : 'application/json'},
+    })
+    .then((response) => response.json());
+
+
     const offcanvas = new bootstrap.Offcanvas('#offcanvasPanel'); //initialising the offcanvas element defined above
 
     //listener event that resets the map view every time the offcanvas panel is closed
@@ -72,6 +80,16 @@
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
+
+    //adding the lines between stations to the map
+    L.geoJSON(linedata, {
+      style: function(feature){
+        return {
+          color: feature.properties.stroke,
+          weight: 7
+        }
+      }
+    }).addTo(map)
 
     //bulk of the work happens in this function
     //gets the data for the pressed marker, processes it, builds the accordion dropdown item dynamically with the data
@@ -183,7 +201,13 @@
           tooltipMessage = tooltipMessage + `<img src='${imageRefBase}${line}Logo.png' width='30'/>`
         }
 
-        markers[i] = L.marker([current.geometry.coordinates[0], current.geometry.coordinates[1]], {id : current.properties.name})
+        markers[i] = L.marker(
+          [current.geometry.coordinates[0], current.geometry.coordinates[1]],
+          {
+            id : current.properties.name,
+            opacity : 0.8
+          }
+          )
         .bindTooltip(tooltipMessage, {direction : 'top', opacity : 0.9});
 
 
