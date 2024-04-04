@@ -11,7 +11,6 @@ import sys
 import threading
 import time
 from datetime import datetime
-from multiprocessing import Manager
 
 from core.tfl import get_crowdingdata, get_statusseverity, get_tflline
 from discord_webhook import DiscordWebhook
