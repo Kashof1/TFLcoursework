@@ -5,7 +5,6 @@ import os
 import random
 import sys
 import time
-from urllib.error import HTTPError
 
 import keras
 import pandas as pd
