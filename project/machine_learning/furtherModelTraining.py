@@ -14,7 +14,6 @@ import pandas as pd
 import tensorflow as tf
 from hyperparamFinder import (input_layers_builder, myHyperModel,
                               pandas_to_dataset)
-from keras import backend as K
 
 (
     raw_input_layers,
