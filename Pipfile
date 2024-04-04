@@ -7,20 +7,16 @@ name = "pypi"
 fastapi = "*"
 uvicorn = "*"
 tensorflow = "*"
-pymongo = "*"
 jinja2 = "*"
 geojson = "*"
 discord-webhook = "*"
 influxdb-client = "*"
 polars = "*"
 pandas = "*"
-pydot = "*"
-graphviz = "*"
 keras-tuner = "*"
 pre-commit = "*"
 
 [dev-packages]
-ipykernel = "*"
 
 [requires]
 python_version = "3.11"
