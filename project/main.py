@@ -3,7 +3,6 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Optional
 
 from core.tfl import get_tflstation
 from fastapi import FastAPI, Form, Request
@@ -80,6 +79,10 @@ def get_markerStationResponse(request: Request, markerresponse: MarkerResponse):
     # outlier case due to hyphen
     if returnedStation == "Paddington (H&C Line)":
         stationName = "Paddington (H&C Line)-Underground"
+    elif returnedStation == "Bromley-by-Bow":
+        stationName = "Bromley-by-Bow Underground Station"
+    elif returnedStation == "Harrow-on-the-Hill":
+        stationName = "Harrow-on-the-Hill Underground Station"
     rectifiedString = station_S_rectifier(string=stationName)
     stationName = stationName if rectifiedString == False else rectifiedString
 
