@@ -26,8 +26,6 @@ dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
 
-recentAppend = "No recent appends at the moment"
-
 
 class tfl_dataCollector:
     def __init__(self, line: str):
