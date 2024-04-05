@@ -11,7 +11,7 @@ import pandas as pd
 import polars as pl
 from core.weather import getWeather
 from dataRefiner import date_bucketizer, lat_long_fetcher, time_bucketizer
-from machine_learning.hyperparamFinder import dataPipeline
+from machine_learning.hyperparamFinder import data__Pipeline
 
 currentRoot = os.path.abspath(
     os.path.dirname(__file__)
@@ -69,7 +69,7 @@ class app_keyAppender:
 
 class get_tflstation(app_keyAppender):
 
-    arrayofoptions = [
+    ARRAYOFOPTIONS = [
         "bakerloo",
         "central",
         "circle",
@@ -85,27 +85,27 @@ class get_tflstation(app_keyAppender):
 
     def __init__(self):
         log.info("LOADED TFL STATION ARRIVALS API")
-        self.base_url = "https://api.tfl.gov.uk/Line/"
+        self.__base_url = "https://api.tfl.gov.uk/Line/"
         # station name (for convenience) paired with naptanid needed for API call, in dictionary form
-        self.directory = os.path.join("data", "stations.json")
-        with open(self.directory, "r", encoding="utf8") as file:
-            self.dictofoptions = json.load(file)
+        self.__directory = os.path.join("data", "stations.json")
+        with open(self.__directory, "r", encoding="utf8") as file:
+            self.__dictofoptions = json.load(file)
 
         # initialising these once, for whenever inference needs to be made
-        self.weatherGetter = getWeather()
-        self.statusGetter = get_statusseverity()
-        self.crowdingGetter = get_crowdingdata()
-        self.pipeline = dataPipeline()
-        self.model = keras.models.load_model("tflDelayPredictor.keras")
+        self.__weatherGetter = getWeather()
+        self.__statusGetter = get_statusseverity()
+        self.__crowdingGetter = get_crowdingdata()
+        self.__pipeline = data__Pipeline()
+        self.__model = keras.models.load_model("tflDelayPredictor.keras")
 
     def get_data(self, line: str, station: str) -> list:
-        stationID, line = self.validate_option(station=station, line=line)
+        stationID, line = self._validate_option(station=station, line=line)
         '''if len(stationID) == 0 or len(line) == 0:
             log.info(
                 f"Invalid option(s) provided to get_tflstation instance. Options provided were {line} and {station}"
             )
             return "No valid options provided"'''
-        url = f"{self.base_url}{line}/Arrivals/{stationID}"
+        url = f"{self.__base_url}{line}/Arrivals/{stationID}"
         data = self.dataFetcher(url=url)
         return data
 
@@ -131,7 +131,7 @@ class get_tflstation(app_keyAppender):
     def inferDelayPrediction(self, line: str, station: str) -> int:
         # validating only the line, as the model takes station NAME for inference
         # e.g. line = central, station = Hainault Underground Station
-        line = self.validate_line(line=line)
+        line = self._validate_line(line=line)
         currentTime = datetime.datetime.now()
 
         # using imported functions in order to keep data formatting consistent for inference
@@ -142,12 +142,12 @@ class get_tflstation(app_keyAppender):
         geoPolars = pl.read_csv(geoPath)
         (latitude, longitude) = lat_long_fetcher(station=station, geoPolars=geoPolars)
 
-        appTemperature = self.weatherGetter.get_weather_item(
+        appTemperature = self.__weatherGetter.get_weather_item(
             item="apparent_temperature"
         )
-        precipitation = self.weatherGetter.get_weather_item(item="precipitation")
-        crowding = self.crowdingGetter.get_data(station=station)
-        statusDictionary = self.statusGetter.get_data()
+        precipitation = self.__weatherGetter.get_weather_item(item="precipitation")
+        crowding = self.__crowdingGetter.get_data(station=station)
+        statusDictionary = self.__statusGetter.get_data()
         statusSeverity = statusDictionary[line]
 
         inferenceData = {
@@ -170,33 +170,33 @@ class get_tflstation(app_keyAppender):
             inferenceData[each] = [inferenceData[each], inferenceData[each]]
 
         dataframe = pd.DataFrame(inferenceData)
-        dataset = self.pipeline.pandas_to_dataset(dataframe, batch_size=2)
+        dataset = self.__pipeline.pandas_to_dataset(dataframe, batch_size=2)
         [(modelinput, _)] = dataset.take(1)
-        rawPred = self.model.predict(modelinput)
+        rawPred = self.__model.predict(modelinput)
         rawPred = int(rawPred[0][0])  # rounding the prediction to nearest second
         return rawPred
 
-    def validate_option(self, line: str, station: str) -> (str, str):
-        line = self.validate_line(line=line)
-        stationID = self.validate_station(station=station)
+    def _validate_option(self, line: str, station: str) -> (str, str):
+        line = self._validate_line(line=line)
+        stationID = self._validate_station(station=station)
         return (stationID, line)
 
-    def validate_line(self, line: str) -> str:
-        if line in self.arrayofoptions:
+    def _validate_line(self, line: str) -> str:
+        if line in self.ARRAYOFOPTIONS:
             return line
         else:
             raise ValueError(f"The selected line ({line}) is not supported")
 
-    def validate_station(self, station: str) -> str:
-        if station in self.dictofoptions:
-            return self.dictofoptions[station]
+    def _validate_station(self, station: str) -> str:
+        if station in self.__dictofoptions:
+            return self.__dictofoptions[station]
         else:
             raise ValueError(f"The selected station ({station}) is not supported")
 
 
 class get_tflline(app_keyAppender):
 
-    arrayofoptions = [
+    ARRAYOFOPTIONS = [
         "bakerloo",
         "central",
         "circle",
@@ -213,17 +213,17 @@ class get_tflline(app_keyAppender):
     def __init__(self, line: str):
         log.info("LOADED TFL LINE ARRIVALS API")
         self.line = line
-        self.base_url = "https://api.tfl.gov.uk/Line/"
+        self.__base_url = "https://api.tfl.gov.uk/Line/"
 
     def get_data(self) -> list:
-        self.line = self.validate_options(option=self.line)
-        url = f"{self.base_url}{self.line}/Arrivals"
+        self.line = self._validate_options(option=self.line)
+        url = f"{self.__base_url}{self.line}/Arrivals"
         data = self.dataFetcher(url=url)
         print(type(data))
         return data
 
-    def validate_options(self, option: str) -> str:
-        if option in self.arrayofoptions:
+    def _validate_options(self, option: str) -> str:
+        if option in self.ARRAYOFOPTIONS:
             return option
         else:
             raise ValueError(f"The selected line ({line}) is not supported")
@@ -232,25 +232,25 @@ class get_tflline(app_keyAppender):
 class get_crowdingdata(app_keyAppender):
     def __init__(self):
         log.info("LOADED CROWDING API")
-        self.base_url = "https://api.tfl.gov.uk/crowding/"
-        self.directory = os.path.join("data", "stations.json")
-        with open(self.directory, "r", encoding="utf8") as file:
-            self.dictofoptions = json.load(file)
+        self.__base_url = "https://api.tfl.gov.uk/crowding/"
+        self.__directory = os.path.join("data", "stations.json")
+        with open(self.__directory, "r", encoding="utf8") as file:
+            self.__dictofoptions = json.load(file)
 
     def get_data(self, station: str):
-        stationID = self.validate_option(station)
+        stationID = self._validate_option(station)
         if not stationID:
             log.info("Invalid option(s) provided to get_crowdingdata instance")
             return "No valid options provided"
-        url = f"{self.base_url}{stationID}/Live"
+        url = f"{self.__base_url}{stationID}/Live"
         data = self.dataFetcher(url=url)
         crowdingPercentage = data["percentageOfBaseline"]
         return crowdingPercentage
 
-    def validate_option(self, station: str):
+    def _validate_option(self, station: str):
         valid = True
-        if station in self.dictofoptions:
-            stationID = self.dictofoptions[station]
+        if station in self.__dictofoptions:
+            stationID = self.__dictofoptions[station]
         else:
             valid = False
 
@@ -261,7 +261,7 @@ class get_crowdingdata(app_keyAppender):
 
 
 class get_statusseverity(app_keyAppender):
-    arrayofoptions = [
+    ARRAYOFOPTIONS = [
         "bakerloo",
         "central",
         "circle",
@@ -277,10 +277,10 @@ class get_statusseverity(app_keyAppender):
 
     def __init__(self):
         log.info("LOADED STATUS SEVERITY API")
-        self.request_url = "https://api.tfl.gov.uk/Line/Mode/tube/Status"
+        self.__request_url = "https://api.tfl.gov.uk/Line/Mode/tube/Status"
 
     def get_data(self) -> dict:
-        url = self.request_url
+        url = self.__request_url
         data = self.dataFetcher(url=url)
 
         """potentially multiple different severity levels can be reported for one line, each pertaining to a different section of the line. In order to gauge
