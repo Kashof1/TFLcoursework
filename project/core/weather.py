@@ -15,13 +15,13 @@ class getWeather:
         self.__valid_options = ["apparent_temperature", "precipitation"]
 
     def get_weather_item(self, item: str) -> float:
-        option = self.validate_option(item)
+        option = self.__validate_option(item)
         request_url = f"{self.__base_url}&current={option}"
         response = get_url(url=request_url)
         val = response["current"][option]
         return val
 
-    def validate_option(self, option: str) -> str:
+    def __validate_option(self, option: str) -> str:
         if option in self.__valid_options:
             return option
         else:

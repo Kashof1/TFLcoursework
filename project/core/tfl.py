@@ -234,7 +234,7 @@ class get_crowdingdata(app_keyAppender):
         with open(self.__directory, "r", encoding="utf8") as file:
             self.__dictofoptions = json.load(file)
 
-    def get_data(self, station: str):
+    def get_data(self, station: str) -> float:
         stationID = self.__validate_option(station)
         if not stationID:
             log.info("Invalid option(s) provided to get_crowdingdata instance")
@@ -244,7 +244,7 @@ class get_crowdingdata(app_keyAppender):
         crowdingPercentage = data["percentageOfBaseline"]
         return crowdingPercentage
 
-    def __validate_option(self, station: str):
+    def __validate_option(self, station: str) -> str:
         valid = True
         if station in self.__dictofoptions:
             stationID = self.__dictofoptions[station]
