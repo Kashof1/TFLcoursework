@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 url = "http://localhost:8086"
 org = "Ghar"
-token = "_WLF5xavdkGh95hlk0d4-obeE9GgfA6TDYYbMLTMOUyz2MqBaUZBOpG6hElvUR-wec0p---x2p7Mn66KuE0CQQ=="  # superuser token - could configure token with specific perms
+token = "_WLF5xavdkGh95hlk0d4-obeE9GgfA6TDYYbMLTMOUyz2MqBaUZBOpG6hElvUR-wec0p---x2p7Mn66KuE0CQQ=="
 dbclient = InfluxDBClient(url=url, org=org, token=token)
 write_api = dbclient.write_api(write_options=SYNCHRONOUS)
 query_api = dbclient.query_api()
