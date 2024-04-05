@@ -11,7 +11,7 @@ import pandas as pd
 import polars as pl
 from core.weather import getWeather
 from dataRefiner import date_bucketizer, lat_long_fetcher, time_bucketizer
-from machine_learning.hyperparamFinder import pandas_to_dataset
+from machine_learning.hyperparamFinder import dataPipeline
 
 currentRoot = os.path.abspath(
     os.path.dirname(__file__)
@@ -39,7 +39,7 @@ class app_keyAppender:
     def __init__(self):
         pass
 
-    def dataFetcher(self, url):
+    def dataFetcher(self, url: str) -> list:
         keylist = [
             "0ed20d25b4b74edbb330d875bbe783ba",
             "4a80bcf6764d437ea5c4fe9cf2e134de",
@@ -63,7 +63,7 @@ class app_keyAppender:
                     random.randint(5, 10)
                 )  # random seconds wait to avoid potential overlap between threads as much as possible
 
-    def appender(self, url):  # obsolete
+    def appender(self, url: str):  # obsolete
         return f"{url}?app_key=09e54f9b77ff469f9a72cdb1257f6ee3"
 
 
@@ -95,9 +95,10 @@ class get_tflstation(app_keyAppender):
         self.weatherGetter = getWeather()
         self.statusGetter = get_statusseverity()
         self.crowdingGetter = get_crowdingdata()
+        self.pipeline = dataPipeline()
         self.model = keras.models.load_model("tflDelayPredictor.keras")
 
-    def get_data(self, line: str, station: str):
+    def get_data(self, line: str, station: str) -> list:
         stationID, line = self.validate_option(station=station, line=line)
         '''if len(stationID) == 0 or len(line) == 0:
             log.info(
@@ -108,7 +109,7 @@ class get_tflstation(app_keyAppender):
         data = self.dataFetcher(url=url)
         return data
 
-    def get_next_unique_trains(self, line: str, station: str):
+    def get_next_unique_trains(self, line: str, station: str) -> dict:
         # this function will get the next train for each unique 'destination' in the API call
         data = self.get_data(line=line, station=station)
         output = {}  # station:time
@@ -127,7 +128,7 @@ class get_tflstation(app_keyAppender):
 
         return output
 
-    def inferDelayPrediction(self, line: str, station: str):
+    def inferDelayPrediction(self, line: str, station: str) -> int:
         # validating only the line, as the model takes station NAME for inference
         # e.g. line = central, station = Hainault Underground Station
         line = self.validate_line(line=line)
@@ -169,24 +170,24 @@ class get_tflstation(app_keyAppender):
             inferenceData[each] = [inferenceData[each], inferenceData[each]]
 
         dataframe = pd.DataFrame(inferenceData)
-        dataset = pandas_to_dataset(dataframe, batch_size=2)
+        dataset = self.pipeline.pandas_to_dataset(dataframe, batch_size=2)
         [(modelinput, _)] = dataset.take(1)
         rawPred = self.model.predict(modelinput)
         rawPred = int(rawPred[0][0])  # rounding the prediction to nearest second
         return rawPred
 
-    def validate_option(self, line: str, station: str):
+    def validate_option(self, line: str, station: str) -> (str, str):
         line = self.validate_line(line=line)
         stationID = self.validate_station(station=station)
         return (stationID, line)
 
-    def validate_line(self, line: str):
+    def validate_line(self, line: str) -> str:
         if line in self.arrayofoptions:
             return line
         else:
             raise ValueError(f"The selected line ({line}) is not supported")
 
-    def validate_station(self, station: str):
+    def validate_station(self, station: str) -> str:
         if station in self.dictofoptions:
             return self.dictofoptions[station]
         else:
@@ -209,18 +210,19 @@ class get_tflline(app_keyAppender):
         "waterloo-city",
     ]
 
-    def __init__(self, line):
+    def __init__(self, line: str):
         log.info("LOADED TFL LINE ARRIVALS API")
         self.line = line
         self.base_url = "https://api.tfl.gov.uk/Line/"
 
-    def get_data(self):
+    def get_data(self) -> list:
         self.line = self.validate_options(option=self.line)
         url = f"{self.base_url}{self.line}/Arrivals"
         data = self.dataFetcher(url=url)
+        print(type(data))
         return data
 
-    def validate_options(self, option: str):
+    def validate_options(self, option: str) -> str:
         if option in self.arrayofoptions:
             return option
         else:
@@ -277,7 +279,7 @@ class get_statusseverity(app_keyAppender):
         log.info("LOADED STATUS SEVERITY API")
         self.request_url = "https://api.tfl.gov.uk/Line/Mode/tube/Status"
 
-    def get_data(self):
+    def get_data(self) -> dict:
         url = self.request_url
         data = self.dataFetcher(url=url)
 
