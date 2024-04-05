@@ -15,6 +15,7 @@ polars = "*"
 pandas = "*"
 keras-tuner = "*"
 pre-commit = "*"
+pylint = "*"
 
 [dev-packages]
 
