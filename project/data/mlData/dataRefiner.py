@@ -10,7 +10,7 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
-def rawDataLoader() -> polars.DataFrame:
+def rawDataLoader(days=400) -> polars.DataFrame:
     # making a list of all the measurement names (statin line combos) so that we can query all of them from the database
     stationspath = os.path.join("data", "stationLineCombos.json")
     with open(stationspath, "r") as jsonfile:
@@ -34,7 +34,7 @@ def rawDataLoader() -> polars.DataFrame:
     for measurementName in measurementNames:
         measurementCount += 1
         query = f'from(bucket: "TFLBucket")\
-    |> range(start: -400d)\
+    |> range(start: -{days}d)\
     |> filter(fn: (r) => r["_measurement"] == "{measurementName}")\
     |> mean()\
     |> group()'
