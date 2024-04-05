@@ -99,7 +99,7 @@ class get_tflstation(app_keyAppender):
         self.__model = keras.models.load_model("tflDelayPredictor.keras")
 
     def get_data(self, line: str, station: str) -> list:
-        stationID, line = self._validate_option(station=station, line=line)
+        stationID, line = self.__validate_option(station=station, line=line)
         '''if len(stationID) == 0 or len(line) == 0:
             log.info(
                 f"Invalid option(s) provided to get_tflstation instance. Options provided were {line} and {station}"
@@ -131,7 +131,7 @@ class get_tflstation(app_keyAppender):
     def inferDelayPrediction(self, line: str, station: str) -> int:
         # validating only the line, as the model takes station NAME for inference
         # e.g. line = central, station = Hainault Underground Station
-        line = self._validate_line(line=line)
+        line = self.__validate_line(line=line)
         currentTime = datetime.datetime.now()
 
         # using imported functions in order to keep data formatting consistent for inference
@@ -176,18 +176,18 @@ class get_tflstation(app_keyAppender):
         rawPred = int(rawPred[0][0])  # rounding the prediction to nearest second
         return rawPred
 
-    def _validate_option(self, line: str, station: str) -> (str, str):
-        line = self._validate_line(line=line)
-        stationID = self._validate_station(station=station)
+    def __validate_option(self, line: str, station: str) -> (str, str):
+        line = self.__validate_line(line=line)
+        stationID = self.__validate_station(station=station)
         return (stationID, line)
 
-    def _validate_line(self, line: str) -> str:
+    def __validate_line(self, line: str) -> str:
         if line in self.ARRAYOFOPTIONS:
             return line
         else:
             raise ValueError(f"The selected line ({line}) is not supported")
 
-    def _validate_station(self, station: str) -> str:
+    def __validate_station(self, station: str) -> str:
         if station in self.__dictofoptions:
             return self.__dictofoptions[station]
         else:
@@ -216,13 +216,13 @@ class get_tflline(app_keyAppender):
         self.__base_url = "https://api.tfl.gov.uk/Line/"
 
     def get_data(self) -> list:
-        self.line = self._validate_options(option=self.line)
+        self.line = self.__validate_options(option=self.line)
         url = f"{self.__base_url}{self.line}/Arrivals"
         data = self.dataFetcher(url=url)
         print(type(data))
         return data
 
-    def _validate_options(self, option: str) -> str:
+    def __validate_options(self, option: str) -> str:
         if option in self.ARRAYOFOPTIONS:
             return option
         else:
@@ -238,7 +238,7 @@ class get_crowdingdata(app_keyAppender):
             self.__dictofoptions = json.load(file)
 
     def get_data(self, station: str):
-        stationID = self._validate_option(station)
+        stationID = self.__validate_option(station)
         if not stationID:
             log.info("Invalid option(s) provided to get_crowdingdata instance")
             return "No valid options provided"
@@ -247,7 +247,7 @@ class get_crowdingdata(app_keyAppender):
         crowdingPercentage = data["percentageOfBaseline"]
         return crowdingPercentage
 
-    def _validate_option(self, station: str):
+    def __validate_option(self, station: str):
         valid = True
         if station in self.__dictofoptions:
             stationID = self.__dictofoptions[station]
