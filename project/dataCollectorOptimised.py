@@ -30,8 +30,9 @@ recentAppend = "No recent appends at the moment"
 
 
 class tfl_dataCollector:
-    def __init__(self, line, crowding_api):
-        self.crowding_api = crowding_api  # passing in the crowding api so that all line scrapers use the same one (saving resources)
+    def __init__(self, line):
+        self.crowding_api = get_crowdingdata()
+        self.status_api = get_statusseverity()
         self.line = line
         self.line_api = get_tflline(line=line)
 
@@ -122,9 +123,7 @@ class tfl_dataCollector:
         write_api.write(bucket="TFLBucket", org=org, record=writeData)
 
     def status_collector(self):
-        status_api = get_statusseverity()
-        currentStatusDictionary = status_api.get_data()
-        del status_api  # only keeping API for as long as we need it to get data (optimising memory)
+        currentStatusDictionary = self.status_api.get_data()
         return currentStatusDictionary
 
 
@@ -161,23 +160,15 @@ if __name__ == "__main__":
         "victoria",
         "waterloo-city",
     ]
-    crowding_api = get_crowdingdata()
     dictOfLineScrapers = {}
     for line in lines:
-        dictOfLineScrapers[line] = tfl_dataCollector(
-            line=line, crowding_api=crowding_api
-        )
+        dictOfLineScrapers[line] = tfl_dataCollector(line=line)
 
-    statusCollectorInstance = tfl_dataCollector(
-        line="placeholder", crowding_api="placeholder"
-    )
+    statusCollectorInstance = tfl_dataCollector(line="placeholder")
     statusCollectorThread = threading.Thread(
         target=statusCollectorInstance.status_collector
     )
     statusCollectorThread.start()
-
-    testinstance = tfl_dataCollector(line="central", crowding_api=crowding_api)
-    # testinstance.arrivals_collector()
 
     """status collector thread was started first as all the other threads need the current status. error would be thrown
     if no such status exists"""
