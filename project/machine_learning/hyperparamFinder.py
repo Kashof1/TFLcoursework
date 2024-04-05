@@ -47,7 +47,7 @@ class dataPipeline:
         'station' : array(['station1', 'station2', ...])
         BECOMES
         'station' : array([['station1'], ['station2'], ...])
-        which helps preserve the dimensionality of data (prevents flattening where one key-value pair has mutliple datapoints within that value)
+        which helps preserve the dimensionality of data (prevents flattening where one key-value pair has multiple datapoints within that value)
         """
 
         dataset = tf.data.Dataset.from_tensor_slices(
@@ -253,7 +253,9 @@ if __name__ == "__main__":
         validating_dataset,
     ) = pipeline.input_layers_builder()
 
-    log_dir = "machine_learning/logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = os.path.join(
+        "machine_learning", "logs", "fit", datetime.now().strftime("%Y%m%d-%H%M%S")
+    )
     tensorboard_callback = keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=0
     )
