@@ -59,7 +59,6 @@ class dataPipeline:
         as there are not multiple labels, this is simply an array. ALL OF THESE ARRAYS ARE WRAPPED IN TENSOR OBJECTS"""
 
         dataset = dataset.batch(batch_size=batch_size)
-        # not using prefetching as not using gpu
         return dataset
 
     def normalisationGetter(
