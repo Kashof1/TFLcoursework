@@ -16,7 +16,7 @@ class kerasSqueezeLayer(Layer):
         self.vocab_size = vocab_size
         super(kerasSqueezeLayer, self).__init__(**kwargs)
 
-    def call(self, x):
+    def call(self, x: tf.Tensor) -> tf.Tensor:
         return tf.cast(tf.squeeze(x), dtype="float32")
 
     def compute_output_shape(self):
@@ -36,7 +36,9 @@ class dataPipeline:
     def __init__(self):
         pass
 
-    def pandas_to_dataset(pdframe, batch_size=512) -> tf.data.Dataset:
+    def pandas_to_dataset(
+        self, pdframe: pd.DataFrame, batch_size=512
+    ) -> tf.data.Dataset:
         labels = pdframe.pop("timeDiff").astype("float32")
         pdframe = {
             key: value.values[:, tf.newaxis] for key, value in pdframe.items()
@@ -60,7 +62,9 @@ class dataPipeline:
         # not using prefetching as not using gpu
         return dataset
 
-    def normalisationGetter(featurename, dataset):
+    def normalisationGetter(
+        self, featurename: str, dataset: tf.data.Dataset
+    ) -> layers.Normalization:
         normaliser = (
             layers.Normalization()
         )  # axis=None ensures scalar normalisation (i.e. every last entered number is normalised by the same params regardless of input shape)
@@ -72,8 +76,9 @@ class dataPipeline:
         )  # have the normaliser 'learn' the mean and s.d. based on the given data
         return normaliser
 
-    # can test this by running it twice with every line and comparing both inputs, and by checking that each one-hot encoded column only occurs once
-    def categoricalEncodingGetter(featurename, dataset, datatype="string"):
+    def categoricalEncodingGetter(
+        self, featurename: str, dataset: tf.data.Dataset, datatype="string"
+    ) -> Layer:
         # cast all types, regardless of string or int, to string (just in case integer indices are being used), as well as isolating the feature we want to use
         processedDS = dataset.map(lambda x, y: x[featurename])
         # creating a layer that 'knows' all of the possible 'words' that occur in the dataset and assigns them a number
@@ -97,9 +102,11 @@ class dataPipeline:
             one_hot_layer(intIndexLayer(feature))
         )
 
-    """this function turns the latitude and longitude into discrete buckets and then associates them by "crossing" them"""
+    def geographicalEncodingGetter(
+        self, dataset: tf.data.Dataset
+    ) -> layers.HashedCrossing:
+        """this function turns the latitude and longitude into discrete buckets and then associates them by "crossing" them"""
 
-    def geographicalEncodingGetter(dataset):
         latitudeset = dataset.map(lambda x, y: x["latitude"])
         longitudeset = dataset.map(lambda x, y: x["longitude"])
         lat_bucket_layer, long_bucket_layer = layers.Discretization(
@@ -119,7 +126,9 @@ class dataPipeline:
             (lat_bucket_layer(latitude), long_bucket_layer(longitude))
         )
 
-    def input_layers_builder():
+    def input_layers_builder(
+        self,
+    ) -> (list, list, tf.data.Dataset, tf.data.Dataset, tf.data.Dataset):
         trainpath = os.path.join("data", "mlData", "trainingdata.json")
         testpath = os.path.join("data", "mlData", "testingdata.json")
         valpath = os.path.join("data", "mlData", "validatingdata.json")
@@ -198,7 +207,7 @@ class myHyperModel(HyperModel):
         self.encoded_input_layers = encoded_input_layers
         self.raw_input_layers = raw_input_layers
 
-    def build(self, hp):
+    def build(self, hp) -> keras.Model:
 
         x = keras.layers.concatenate(
             inputs=self.encoded_input_layers, name="input_formattting_layer"

@@ -10,7 +10,7 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
-def rawDataLoader():
+def rawDataLoader() -> polars.DataFrame:
     # making a list of all the measurement names (statin line combos) so that we can query all of them from the database
     stationspath = os.path.join("data", "stationLineCombos.json")
     with open(stationspath, "r") as jsonfile:
@@ -57,7 +57,7 @@ def rawDataLoader():
 
 
 # adds the hourly precipitation and apparent temperature for each datapoint to the datapoint
-def weatherAppender(rawdata):
+def weatherAppender(rawdata: polars.DataFrame) -> polars.DataFrame:
     weatherPath = os.path.join("data", "weatherdata.csv")
     weatherpl = polars.read_csv(weatherPath)
     rawIterator = rawdata.iter_rows(named=True)
@@ -87,7 +87,7 @@ def weatherAppender(rawdata):
     return weatheredData
 
 
-def lat_long_fetcher(station: str, geoPolars: polars.DataFrame):
+def lat_long_fetcher(station: str, geoPolars: polars.DataFrame) -> polars.DataFrame:
     station = station.replace(
         "Underground Station", ""
     ).strip()  # cleaning station names to match station names in csv file
@@ -110,7 +110,7 @@ def lat_long_fetcher(station: str, geoPolars: polars.DataFrame):
 
 
 # adds the latitude and longitude for the station of each datapoint to the datapoint
-def geoDataAppender(rawdata):
+def geoDataAppender(rawdata: polars.DataFrame) -> polars.DataFrame:
     geoPath = os.path.join("data", "stationLocRaw.csv")
     geopl = polars.read_csv(geoPath)
     rawIterator = rawdata.iter_rows(named=True)
@@ -136,7 +136,9 @@ normalising the data before feeding it to the ML model"""
 
 
 def station_lineEncoder(
-    rawdata,
+    rawdata: polars.DataFrame,
+) -> (
+    polars.DataFrame
 ):  # this must occur last, as the other functions rely on the station name and do not work with station number
     stationPath = os.path.join("data", "stations.json")
     # assigning each line a number, between 1 and 11
@@ -179,7 +181,7 @@ def station_lineEncoder(
     return finalData
 
 
-def time_bucketizer(date_time: datetime):
+def time_bucketizer(date_time: datetime) -> str:
     """grouping the time into half hour intervals"""
     strtime = date_time.time().replace(microsecond=0).strftime("%H:%M:%S")
 
@@ -197,14 +199,14 @@ def time_bucketizer(date_time: datetime):
     return finalTime
 
 
-def date_bucketizer(date_time: datetime):
+def date_bucketizer(date_time: datetime) -> str:
     day = str(date_time.isoweekday())
     return day
 
 
 # groups the time into half-hour intervals (bucketizes it) and also
 # acquiring and appending the day of the week from the date
-def dateTimeConvertor(rawdata):
+def dateTimeConvertor(rawdata: polars.DataFrame) -> polars.DataFrame:
     appendCols = {"day": [], "time": []}
     rawIterator = rawdata.iter_rows(named=True)
 

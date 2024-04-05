@@ -30,7 +30,7 @@ recentAppend = "No recent appends at the moment"
 
 
 class tfl_dataCollector:
-    def __init__(self, line):
+    def __init__(self, line: str):
         self.crowding_api = get_crowdingdata()
         self.status_api = get_statusseverity()
         self.line = line
@@ -100,7 +100,9 @@ class tfl_dataCollector:
         except Exception as e:
             print(e)
 
-    def database_appender(self, predictedTime, actualTime, difference, station):
+    def database_appender(
+        self, predictedTime: str, actualTime: str, difference: float, station: str
+    ):
         measurementName = f'{self.line}_{station.replace(" ","")}'
         crowdingValue = self.crowding_api.get_data(station=station)
         statusSeverityDictionary = (
@@ -122,7 +124,7 @@ class tfl_dataCollector:
 
         write_api.write(bucket="TFLBucket", org=org, record=writeData)
 
-    def status_collector(self):
+    def status_collector(self) -> dict:
         currentStatusDictionary = self.status_api.get_data()
         return currentStatusDictionary
 

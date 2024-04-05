@@ -5,7 +5,7 @@ import urllib.request
 log = logging.getLogger(__name__)
 
 
-def get_url(url: str):
+def get_url(url: str) -> list:
     req_info = urllib.request.urlopen(url)
     log.info(f"REQUESTED DATA FROM {url}")
     data = req_info.read()
