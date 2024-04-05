@@ -210,7 +210,7 @@ class myHyperModel(HyperModel):
     def build(self, hp) -> keras.Model:
 
         x = keras.layers.concatenate(
-            inputs=self.encoded_input_layers, name="input_formattting_layer"
+            inputs=self.encoded_input_layers, name="input_formatting_layer"
         )  # input formatting layer
 
         for layerNumber in range(hp.Int("layer_num", 3, 6)):
