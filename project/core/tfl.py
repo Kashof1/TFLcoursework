@@ -63,9 +63,6 @@ class app_keyAppender:
                     random.randint(5, 10)
                 )  # random seconds wait to avoid potential overlap between threads as much as possible
 
-    def appender(self, url: str):  # obsolete
-        return f"{url}?app_key=09e54f9b77ff469f9a72cdb1257f6ee3"
-
 
 class get_tflstation(app_keyAppender):
 
