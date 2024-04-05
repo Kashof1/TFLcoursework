@@ -31,10 +31,10 @@ recentAppend = "No recent appends at the moment"
 
 class tfl_dataCollector:
     def __init__(self, line: str):
-        self.crowding_api = get_crowdingdata()
-        self.status_api = get_statusseverity()
+        self.__crowding_api = get_crowdingdata()
+        self.__status_api = get_statusseverity()
         self.line = line
-        self.line_api = get_tflline(line=line)
+        self.__line_api = get_tflline(line=line)
 
         # building list of stations for this line
         directory = os.path.join("data", "stationLineCombos.json")
@@ -48,7 +48,7 @@ class tfl_dataCollector:
                 "TrainID": ["Station", "PredictedTime", "ActualTime", "Difference"]
             }  # private as this should not be monitored or changed by anything outside this method
             while True:
-                arrivalsdata = self.line_api.get_data()
+                arrivalsdata = self.__line_api.get_data()
                 # this section adds any new, previously untracked trains to the list
                 for each in arrivalsdata:
                     trainId = each["vehicleId"]
@@ -104,7 +104,7 @@ class tfl_dataCollector:
         self, predictedTime: str, actualTime: str, difference: float, station: str
     ):
         measurementName = f'{self.line}_{station.replace(" ","")}'
-        crowdingValue = self.crowding_api.get_data(station=station)
+        crowdingValue = self.__crowding_api.get_data(station=station)
         statusSeverityDictionary = (
             self.status_collector()
         )  # status collector is only called when an append is made to minimise calls
@@ -125,7 +125,7 @@ class tfl_dataCollector:
         write_api.write(bucket="TFLBucket", org=org, record=writeData)
 
     def status_collector(self) -> dict:
-        currentStatusDictionary = self.status_api.get_data()
+        currentStatusDictionary = self.__status_api.get_data()
         return currentStatusDictionary
 
 
