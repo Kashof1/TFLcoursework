@@ -55,13 +55,10 @@ class app_keyAppender:
                     return data
                 except Exception as e:
                     pass
-
             if (
                 index >= len(keylist) - 1
             ):  # if all keys are exhausted, wait before trying again
-                time.sleep(
-                    random.randint(5, 10)
-                )  # random seconds wait to avoid potential overlap between threads as much as possible
+                time.sleep(random.randint(5, 10))
 
 
 class get_tflstation(app_keyAppender):
@@ -97,11 +94,6 @@ class get_tflstation(app_keyAppender):
 
     def get_data(self, line: str, station: str) -> list:
         stationID, line = self.__validate_option(station=station, line=line)
-        '''if len(stationID) == 0 or len(line) == 0:
-            log.info(
-                f"Invalid option(s) provided to get_tflstation instance. Options provided were {line} and {station}"
-            )
-            return "No valid options provided"'''
         url = f"{self.__base_url}{line}/Arrivals/{stationID}"
         data = self.dataFetcher(url=url)
         return data
@@ -248,10 +240,6 @@ class get_crowdingdata(app_keyAppender):
         valid = True
         if station in self.__dictofoptions:
             stationID = self.__dictofoptions[station]
-        else:
-            valid = False
-
-        if valid == True:
             return stationID
         else:
             raise ValueError(f"The selected station ({station}) is not supported")
