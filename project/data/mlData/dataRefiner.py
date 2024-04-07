@@ -58,6 +58,8 @@ def rawDataLoader(days=400) -> polars.DataFrame:
 
 # adds the hourly precipitation and apparent temperature for each datapoint to the datapoint
 def weatherAppender(rawdata: polars.DataFrame) -> polars.DataFrame:
+    if rawdata.is_empty():
+        return None
     weatherPath = os.path.join("data", "weatherdata.csv")
     weatherpl = polars.read_csv(weatherPath)
     rawIterator = rawdata.iter_rows(named=True)
