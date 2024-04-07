@@ -286,7 +286,7 @@ class TestLatLongFetcher(unittest.TestCase):
     checking how lat_long_fetcher behaves with a valid station name
     """
 
-    def test_normal_lat_long_fetcher(self):
+    def test_normal_lat_long_fetcher(self):  # normal data
         latitude, longitude = lat_long_fetcher("Station1", self.geoPolars)
         self.assertAlmostEqual(longitude, 51.5074)
         self.assertAlmostEqual(latitude, -0.1278)
@@ -296,7 +296,7 @@ class TestLatLongFetcher(unittest.TestCase):
     rather than producing bogus values
     """
 
-    def test_boundary_lat_long_fetcher(self):
+    def test_boundary_lat_long_fetcher(self):  # boundary data
         # Test lat_long_fetcher with an empty geoPolars DataFrame
         latitude, longitude = lat_long_fetcher("Station1", polars.DataFrame({}))
         self.assertIsNone(latitude)
@@ -307,7 +307,7 @@ class TestLatLongFetcher(unittest.TestCase):
     than continuing and appending bogus values
     """
 
-    def test_erroneous_lat_long_fetcher(self):
+    def test_erroneous_lat_long_fetcher(self):  # erroneous data
         with self.assertRaises(Exception):
             lat_long_fetcher("InvalidStation", self.geoPolars)
 
@@ -316,7 +316,7 @@ class TestLatLongFetcher(unittest.TestCase):
         with self.assertRaises(Exception):
             lat_long_fetcher("Station1", geoPolars_missing_columns)
 
-        # Test lat_long_fetcher with incorrect network type
+        # Test lat_long_fetcher with non-matching network
         geoPolars_incorrect_network = polars.DataFrame(
             {"NAME": ["Station1"], "NETWORK": ["Wrong Network"]}
         )
@@ -329,7 +329,7 @@ class TestTimeBucketizer(unittest.TestCase):
     Checking to see if time_bucketizer functions correctly for normal datetime input
     """
 
-    def test_normal_time_bucketizer(self):
+    def test_normal_time_bucketizer(self):  # normal data
         date_time = datetime.strptime("2024-04-07 12:15:30", "%Y-%m-%d %H:%M:%S")
         result = time_bucketizer(date_time)
         self.assertEqual(result, "12:00:00")
@@ -338,8 +338,7 @@ class TestTimeBucketizer(unittest.TestCase):
     Checking to see if time bucketizer works for times that are on the boundary of intervals
     """
 
-    def test_boundary_time_bucketizer(self):
-        # Test time_bucketizer with boundary values for minute intervals
+    def test_boundary_time_bucketizer(self):  # boundary data
         date_time_1 = datetime.strptime("2024-04-07 12:00:00", "%Y-%m-%d %H:%M:%S")
         date_time_2 = datetime.strptime("2024-04-07 12:29:59", "%Y-%m-%d %H:%M:%S")
         date_time_3 = datetime.strptime("2024-04-07 12:30:00", "%Y-%m-%d %H:%M:%S")
@@ -358,12 +357,9 @@ class TestTimeBucketizer(unittest.TestCase):
     than generating a bogus value
     """
 
-    def test_erroneous_time_bucketizer(self):
-        # Test time_bucketizer with erroneous input
+    def test_erroneous_time_bucketizer(self):  # erroneous data
         with self.assertRaises(AttributeError):
-            time_bucketizer(
-                "2024-04-07 12:15:30"
-            )  # Should raise AttributeError for non-datetime input
+            time_bucketizer("2024-04-07 12:15:30")
 
 
 class TestDateBucketizer(unittest.TestCase):
@@ -371,7 +367,7 @@ class TestDateBucketizer(unittest.TestCase):
     checking if date bucketizer works with a normal date
     """
 
-    def test_normal_date_bucketizer(self):
+    def test_normal_date_bucketizer(self):  # normal data
         date_time = datetime.strptime("2024-04-07", "%Y-%m-%d")
         result = date_bucketizer(date_time)
         self.assertEqual(result, "7")
@@ -381,7 +377,7 @@ class TestDateBucketizer(unittest.TestCase):
     (ISO weekday 1 and 7)
     """
 
-    def test_boundary_date_bucketizer(self):
+    def test_boundary_date_bucketizer(self):  # boundary data
         date_time_1 = datetime.strptime("2024-04-07", "%Y-%m-%d")
         date_time_2 = datetime.strptime("2024-04-01", "%Y-%m-%d")
         result_1 = date_bucketizer(date_time_1)
@@ -394,12 +390,9 @@ class TestDateBucketizer(unittest.TestCase):
     format rather than generating a bogus value
     """
 
-    def test_erroneous_date_bucketizer(self):
-        # Test date_bucketizer with erroneous input
+    def test_erroneous_date_bucketizer(self):  # erroneous data
         with self.assertRaises(AttributeError):
-            date_bucketizer(
-                "2024-04-07"
-            )  # Should raise AttributeError for non-datetime input
+            date_bucketizer("2024-04-07")
 
 
 if __name__ == "__main__":
