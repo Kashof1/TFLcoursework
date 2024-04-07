@@ -257,7 +257,6 @@ class TestWeatherAppender(unittest.TestCase):
     def test_boundary_weather_appender(self):  # boundary data
         raw_data = polars.DataFrame({})
         weathered_data = weatherAppender(raw_data)
-        print(weathered_data)
         self.assertIsNone(weathered_data)
 
     """
@@ -292,18 +291,17 @@ class TestLatLongFetcher(unittest.TestCase):
         self.assertAlmostEqual(latitude, -0.1278)
 
     """
-    checking that the lat_long_fetcher correctly returns nothing if the dataframe is empty,
+    checking that the lat_long_fetcher correctly crashes if the dataframe is empty,
     rather than producing bogus values
     """
 
     def test_boundary_lat_long_fetcher(self):  # boundary data
         # Test lat_long_fetcher with an empty geoPolars DataFrame
-        latitude, longitude = lat_long_fetcher("Station1", polars.DataFrame({}))
-        self.assertIsNone(latitude)
-        self.assertIsNone(longitude)
+        with self.assertRaises(Exception):
+            latitude, longitude = lat_long_fetcher("Station1", polars.DataFrame({}))
 
     """
-    checkign that lat_long_fetcher correctly halts if incorrect data is provided, rather
+    checking that lat_long_fetcher correctly halts if incorrect data is provided, rather
     than continuing and appending bogus values
     """
 
