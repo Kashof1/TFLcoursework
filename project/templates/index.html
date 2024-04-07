@@ -46,7 +46,7 @@
       'Jubilee' : 'RGB(123,134,140)',
       'Metropolitan' : 'RGB(135,15,84)',
       'Northern' : 'RGB(0,0,0)',
-      'Piccadilly' : 'RGB(0,15,159)',
+      'Piccadilly' : 'RGB(0,45,200)',
       'Victoria' : 'RGB(0,160,223)',
       'Waterloo-city' : 'RGB(107,205,178)'
     }
@@ -168,12 +168,16 @@
         //creating the list of soonest arrival times for each terminal station
         const delayp = predictionDict[line.toLowerCase()];
         let finalInput = `<h3>Trains on this line are currently predicted to be ${delayp}</h3><br><br>`;
-        for (let terminus of Object.keys(lineArrivals)){
-          const minutes = Math.floor(lineArrivals[terminus] / 60); //the minutes of the time prediction using floor div
-          const seconds = lineArrivals[terminus] % 60;
-          finalInput = finalInput + `The next train for <strong>${terminus}</strong> is arriving in ${minutes} minutes and ${seconds} seconds<br><br>`
+        if (Object.keys(lineArrivals).length === 0){
+          finalInput = finalInput + `No arrivals data is currently available for this line`
+        } else{
+          for (let terminus of Object.keys(lineArrivals)){
+            const minutes = Math.floor(lineArrivals[terminus] / 60); //the minutes of the time prediction using floor div
+            const seconds = lineArrivals[terminus] % 60;
+            finalInput = finalInput + `The next train for <strong>${terminus}</strong> is arriving in ${minutes} minutes and ${seconds} seconds<br><br>`
+          };
         };
-        console.log(finalInput)
+
         body.innerHTML = finalInput;
 
         header.appendChild(button);

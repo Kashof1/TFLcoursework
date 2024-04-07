@@ -10,8 +10,9 @@ import keras
 import pandas as pd
 import polars as pl
 from core.weather import getWeather
-from dataRefiner import date_bucketizer, lat_long_fetcher, time_bucketizer
-from machine_learning.hyperparamFinder import data__Pipeline
+from data.mlData.dataRefiner import (date_bucketizer, lat_long_fetcher,
+                                     time_bucketizer)
+from machine_learning.hyperparamFinder import dataPipeline
 
 currentRoot = os.path.abspath(
     os.path.dirname(__file__)
@@ -89,7 +90,7 @@ class get_tflstation(app_keyAppender):
         self.__weatherGetter = getWeather()
         self.__statusGetter = get_statusseverity()
         self.__crowdingGetter = get_crowdingdata()
-        self.__pipeline = data__Pipeline()
+        self.__pipeline = dataPipeline()
         self.__model = keras.models.load_model("tflDelayPredictor.keras")
 
     def get_data(self, line: str, station: str) -> list:
@@ -208,14 +209,13 @@ class get_tflline(app_keyAppender):
         self.line = self.__validate_options(option=self.line)
         url = f"{self.__base_url}{self.line}/Arrivals"
         data = self.dataFetcher(url=url)
-        print(type(data))
         return data
 
     def __validate_options(self, option: str) -> str:
         if option in self.ARRAYOFOPTIONS:
             return option
         else:
-            raise ValueError(f"The selected line ({line}) is not supported")
+            raise ValueError(f"The selected line ({option}) is not supported")
 
 
 class get_crowdingdata(app_keyAppender):
