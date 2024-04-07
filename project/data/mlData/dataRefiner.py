@@ -87,6 +87,7 @@ def weatherAppender(rawdata: polars.DataFrame) -> polars.DataFrame:
     return weatheredData
 
 
+# fetches the latitude and longitude for a given station
 def lat_long_fetcher(station: str, geoPolars: polars.DataFrame) -> polars.DataFrame:
     station = station.replace(
         "Underground Station", ""
@@ -130,7 +131,7 @@ def geoDataAppender(rawdata: polars.DataFrame) -> polars.DataFrame:
     return geodData
 
 
-"""station line encoding may not be used
+"""station line encoding method is now OBSOLETE
 instead using one-hot/multi-hot encoding when
 normalising the data before feeding it to the ML model"""
 
@@ -181,8 +182,8 @@ def station_lineEncoder(
     return finalData
 
 
+# groups the time into half-hour intervals and formats
 def time_bucketizer(date_time: datetime) -> str:
-    """grouping the time into half hour intervals"""
     strtime = date_time.time().replace(microsecond=0).strftime("%H:%M:%S")
 
     # getting the hour and minute values using regex
@@ -199,6 +200,7 @@ def time_bucketizer(date_time: datetime) -> str:
     return finalTime
 
 
+# converts the day to a string between 1 and 7
 def date_bucketizer(date_time: datetime) -> str:
     day = str(date_time.isoweekday())
     return day
