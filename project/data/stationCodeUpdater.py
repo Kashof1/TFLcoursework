@@ -103,4 +103,4 @@ def linesGeoJson():  # processes the vectors of all of the lines (removing non-u
 
 if __name__ == "__main__":
     # call one of the scripts here to execute it
-    linesGeoJson()
+    pass
